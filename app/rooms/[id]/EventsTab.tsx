@@ -141,7 +141,10 @@ function EventList({
                 <h3 className="truncate font-semibold">{e.title}</h3>
                 {confirmed ? (
                   <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                    ✅ {formatRange(e.final_start!, e.final_end!, locale)}
+                    ✅{" "}
+                    {[formatRange(e.final_start!, e.final_end!, locale), e.final_time?.slice(0, 5), e.location]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
                 ) : (
                   <p className="muted text-sm">

@@ -16,11 +16,18 @@ Fuente de verdad del producto: `docs/SPEC.md`. Los docs de `docs/spec-legacy/` e
 - **Keepalive** (`instrumentation.ts`): en producción consulta Supabase al arrancar y cada 24 h para que el plan gratis no pause el proyecto.
 - **Errores**: las server actions devuelven `{ error }` (no lanzan) para que el mensaje se vea en producción. Página `/unavailable` si Supabase no responde o falta el perfil (evita bucle de redirecciones).
 - **Login**: el botón de Google solo aparece si Google está activado en Supabase. Además del enlace, se puede entrar con el código del correo (`verifyOtp`); plantillas en `supabase/email-templates/`. En `npm run dev` hay un "Accés de proves" con contraseña para usuarias de prueba creadas en Supabase (oculto en producción).
+- **Salas con aprobación** (0002): interruptor por sala (activado por defecto), solicitudes en Gent con aceptar/rechazar, badge en pestaña y dashboard, página "esperando". Al desactivar la aprobación, las pendientes entran solas (0005).
+- **Género** (0003): en Ajustes (f/m/n). Textos de grupo neutros; individuales por persona (`byGender` en `lib/i18n/dictionaries.ts`).
+- **No leídos** (0004): `room_members.last_read_at`, RPC `unread_counts` y `mark_room_read`; badge en la pestaña Xat (en vivo) y en el dashboard.
+- **Hora y lugar** (0005) al fijar la fecha; "Pròximes quedades" en el dashboard. Chat con "Veure missatges anteriors" (100 + 50 por página).
+- **PWA**: `app/manifest.ts`, iconos en `public/`, instalable en Android e iPhone.
+- **Admin v2** (0006, `docs/ADMIN.md`): pestañas Resum (personas activas + gráfica 30 días), Comptes (buscador y ficha: renombrar, admin, cerrar sesiones, borrar), Sales (ficha, cambiar titular), Historial (audit_log por triggers, 90 días), Sistema (Supabase, MB usados, commit desplegado). Actividad diaria registrada desde `proxy.ts` (cookie `seen`).
 - **Tests**: `lib/availability.test.ts` (8 tests de lógica pura).
 - Verificado: `tsc`, `eslint`, `next build`, y UI del calendario revisada en navegador con datos falsos.
 
 ## ⬜ Pendiente
 - Probar el flujo completo con varias usuarias reales (login → sala → evento → marcar → chat → admin).
+- **Ejecutar en Supabase las migraciones 0002 a 0006** (pendientes) y después hacer push; hasta entonces no subir nada a main.
 - Pegar plantillas de correo, configurar SMTP de Resend, instalar en Unraid, ruta en Cloudflare Tunnel.
 
 ## 📁 Estructura

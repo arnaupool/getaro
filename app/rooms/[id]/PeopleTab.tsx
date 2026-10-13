@@ -1,17 +1,57 @@
-import { deleteRoom, leaveRoom, regenerateInvite, removeMember, renameRoom, transferRoom } from "@/app/actions";
+import {
+  acceptJoinRequest,
+  deleteRoom,
+  leaveRoom,
+  regenerateInvite,
+  rejectJoinRequest,
+  removeMember,
+  renameRoom,
+  transferRoom,
+} from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
 import { ActionForm, CopyButton, SubmitButton } from "@/components/forms";
 import { getI18n } from "@/lib/i18n/server";
 import type { getRoomContext } from "@/lib/room";
+import { ApprovalToggle } from "./ApprovalToggle";
 
 type Ctx = Awaited<ReturnType<typeof getRoomContext>>;
 
 export async function PeopleTab({ ctx }: { ctx: Ctx }) {
-  const { room, members, me, canManageRoom, isOwner, isMember } = ctx;
+  const { room, members, requests, me, canManageRoom, isOwner, isMember } = ctx;
   const { t } = await getI18n();
 
   return (
     <div className="space-y-6">
+      {canManageRoom && requests.length > 0 && (
+        <section className="card space-y-3 border-violet-300 dark:border-violet-800">
+          <h2 className="font-semibold">
+            {t.people.requests} ({requests.length})
+          </h2>
+          <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            {requests.map(({ member }) => (
+              <li key={member.id} className="flex flex-wrap items-center gap-3 py-2">
+                <Avatar member={member} />
+                <span className="min-w-0 font-medium break-words">{member.display_name}</span>
+                <div className="ml-auto flex gap-2">
+                  <ActionForm action={acceptJoinRequest}>
+                    <input type="hidden" name="roomId" value={room.id} />
+                    <input type="hidden" name="userId" value={member.id} />
+                    <SubmitButton className="btn-primary px-3 py-1.5 text-xs">{t.people.accept}</SubmitButton>
+                  </ActionForm>
+                  <ActionForm action={rejectJoinRequest}>
+                    <input type="hidden" name="roomId" value={room.id} />
+                    <input type="hidden" name="userId" value={member.id} />
+                    <SubmitButton className="btn-ghost text-xs text-rose-600 dark:text-rose-400">
+                      {t.people.reject}
+                    </SubmitButton>
+                  </ActionForm>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <ul className="card divide-y divide-zinc-200 p-0 dark:divide-zinc-800">
         {members.map((m) => {
           const memberIsOwner = m.id === room.owner_id;
@@ -22,7 +62,7 @@ export async function PeopleTab({ ctx }: { ctx: Ctx }) {
               {m.id === me.id && <span className="badge bg-zinc-100 dark:bg-zinc-800">{t.common.you}</span>}
               {memberIsOwner && (
                 <span className="badge bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
-                  {t.common.owner}
+                  {t.common.owner(m.gender ?? "n")}
                 </span>
               )}
               {canManageRoom && !memberIsOwner && (
@@ -32,9 +72,9 @@ export async function PeopleTab({ ctx }: { ctx: Ctx }) {
                     <input type="hidden" name="userId" value={m.id} />
                     <SubmitButton
                       className="btn-ghost text-xs"
-                      confirm={t.people.confirmMakeOwner(m.display_name, isOwner)}
+                      confirm={t.people.confirmMakeOwner(m.display_name, m.gender ?? "n", isOwner)}
                     >
-                      {t.people.makeOwner}
+                      {t.people.makeOwner(m.gender ?? "n")}
                     </SubmitButton>
                   </ActionForm>
                   <ActionForm action={removeMember}>
@@ -82,6 +122,7 @@ export async function PeopleTab({ ctx }: { ctx: Ctx }) {
       {canManageRoom && (
         <section className="card space-y-3">
           <h2 className="font-semibold">{t.people.roomSettings}</h2>
+          <ApprovalToggle roomId={room.id} enabled={room.require_approval} />
           <ActionForm action={renameRoom} className="flex flex-wrap gap-2">
             <input type="hidden" name="roomId" value={room.id} />
             <input name="name" defaultValue={room.name} required maxLength={50} className="input sm:max-w-xs" />
@@ -108,7 +149,7 @@ export async function PeopleTab({ ctx }: { ctx: Ctx }) {
           </SubmitButton>
         </ActionForm>
       )}
-      {isOwner && <p className="muted text-xs">{t.people.ownerCantLeave}</p>}
+      {isOwner && <p className="muted text-xs">{t.people.ownerCantLeave(me.gender ?? "n")}</p>}
     </div>
   );
 }

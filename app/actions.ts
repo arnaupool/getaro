@@ -42,9 +42,61 @@ export async function joinRoom(_: ActionState, fd: FormData): Promise<ActionStat
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("join_room", { code });
-  if (error) return { error: t.errors.invalidCode };
+  const result = (data as { room_id: string; status: "member" | "joined" | "pending" }[] | null)?.[0];
+  if (error || !result) return { error: t.errors.invalidCode };
   revalidatePath("/");
-  redirect(`/rooms/${data}`);
+  // Si la sala pide aprobación, la página del enlace muestra "esperando"
+  redirect(result.status === "pending" ? `/join/${code}` : `/rooms/${result.room_id}`);
+}
+
+export async function cancelJoinRequest(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const me = await requireProfile();
+  const supabase = await createClient();
+  const { error } = await supabase.from("join_requests").delete().eq("room_id", str(fd, "roomId")).eq("user_id", me.id);
+  if (error) return { error: t.errors.request };
+  revalidatePath("/");
+  redirect("/");
+}
+
+export async function acceptJoinRequest(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const roomId = str(fd, "roomId");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_join_request", { rid: roomId, uid: str(fd, "userId") });
+  if (error) return { error: t.errors.request };
+  revalidatePath(`/rooms/${roomId}`);
+  revalidatePath("/");
+}
+
+export async function rejectJoinRequest(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const roomId = str(fd, "roomId");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("join_requests")
+    .delete()
+    .eq("room_id", roomId)
+    .eq("user_id", str(fd, "userId"))
+    .select("user_id");
+  if (error || !data?.length) return { error: t.errors.request };
+  revalidatePath(`/rooms/${roomId}`);
+  revalidatePath("/");
+}
+
+export async function setRequireApproval(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const roomId = str(fd, "roomId");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("rooms")
+    .update({ require_approval: fd.get("require_approval") === "on" })
+    .eq("id", roomId)
+    .select("id");
+  if (error || !data?.length) return { error: t.errors.save };
+  revalidatePath(`/rooms/${roomId}`);
+  revalidatePath("/");
+  return { ok: t.common.saved };
 }
 
 export async function renameRoom(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -212,6 +264,27 @@ export async function setFinalDate(
   return { ok: start ? t.errors.fixed : t.errors.cleared };
 }
 
+export async function updateEventDetails(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const roomId = str(fd, "roomId");
+  const eventId = str(fd, "eventId");
+  const time = str(fd, "final_time");
+  const location = str(fd, "location").slice(0, 200);
+  if (time && !/^\d{2}:\d{2}$/.test(time)) return { error: t.errors.saveEvent };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .update({ final_time: time || null, location: location || null })
+    .eq("id", eventId)
+    .select("id");
+  if (error || !data?.length) return { error: t.errors.saveEvent };
+  revalidatePath(`/rooms/${roomId}/events/${eventId}`);
+  revalidatePath(`/rooms/${roomId}`);
+  revalidatePath("/");
+  return { ok: t.common.saved };
+}
+
 // ─── Perfil ─────────────────────────────────────────────────
 
 export async function updateProfile(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -219,11 +292,13 @@ export async function updateProfile(_: ActionState, fd: FormData): Promise<Actio
   const me = await requireProfile();
   const display_name = str(fd, "display_name");
   const color = str(fd, "color");
+  const genderValue = str(fd, "gender");
+  const gender = genderValue === "f" || genderValue === "m" ? genderValue : "n";
   if (display_name.length < 1 || display_name.length > 40) return { error: t.errors.displayNameLength };
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: t.errors.invalidColor };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("profiles").update({ display_name, color }).eq("id", me.id);
+  const { error } = await supabase.from("profiles").update({ display_name, color, gender }).eq("id", me.id);
   if (error) return { error: t.errors.save };
   revalidatePath("/", "layout");
   return { ok: t.common.saved };
@@ -237,7 +312,8 @@ export async function adminDeleteUser(_: ActionState, fd: FormData): Promise<Act
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_delete_user", { uid: str(fd, "userId") });
   if (error) return { error: t.errors.deleteUser(error.message) };
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
+  if (str(fd, "redirectTo")) redirect(str(fd, "redirectTo"));
 }
 
 export async function adminSetAdmin(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -246,7 +322,41 @@ export async function adminSetAdmin(_: ActionState, fd: FormData): Promise<Actio
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_admin", { uid: str(fd, "userId"), value: str(fd, "value") === "true" });
   if (error) return { error: t.errors.setAdmin(error.message) };
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
+}
+
+export async function adminRenameUser(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  await requireAdmin();
+  const name = str(fd, "name");
+  if (name.length < 1 || name.length > 40) return { error: t.errors.displayNameLength };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_rename_user", { uid: str(fd, "userId"), new_name: name });
+  if (error) return { error: t.errors.save };
+  revalidatePath("/admin", "layout");
+  return { ok: t.common.saved };
+}
+
+export async function adminSignOutUser(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  await requireAdmin();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_sign_out_user", { uid: str(fd, "userId") });
+  if (error) return { error: t.errors.save };
+  revalidatePath("/admin", "layout");
+  return { ok: t.admin.signedOut(Number(data ?? 0)) };
+}
+
+export async function adminTransferRoom(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  await requireAdmin();
+  const roomId = str(fd, "roomId");
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("transfer_room", { rid: roomId, new_owner: str(fd, "userId") });
+  if (error) return { error: t.errors.transfer };
+  revalidatePath("/admin", "layout");
+  revalidatePath(`/rooms/${roomId}`);
+  return { ok: t.common.saved };
 }
 
 // ─── Idioma ─────────────────────────────────────────────────

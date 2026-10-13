@@ -1,12 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { useI18n } from "@/components/I18nProvider";
 import { INTL_LOCALE } from "@/lib/i18n/dictionaries";
 import { createClient } from "@/lib/supabase/client";
 import type { Member, Message } from "@/lib/types";
+
+// Mensajes que carga la página (ver ChatTab) y los que se piden cada vez al subir
+const PAGE_INITIAL = 100;
+const PAGE_OLDER = 50;
 
 export function Chat({
   roomId,
@@ -37,6 +41,11 @@ export function Chat({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const [hasMore, setHasMore] = useState(initialMessages.length >= PAGE_INITIAL);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  // Altura antes de añadir mensajes antiguos arriba, para no mover lo que se estaba leyendo
+  const prependFrom = useRef<number | null>(null);
   const byId = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
   const router = useRouter();
   const refreshedFor = useRef(new Set<string>());
@@ -70,9 +79,43 @@ export function Chat({
     };
   }, [supabase, roomId]);
 
+  // Bajar al final solo cuando llega un mensaje nuevo (no al cargar antiguos)
+  const lastId = messages.at(-1)?.id;
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
-  }, [messages.length]);
+  }, [lastId]);
+
+  useLayoutEffect(() => {
+    const el = listRef.current;
+    if (el && prependFrom.current !== null) {
+      el.scrollTop += el.scrollHeight - prependFrom.current;
+      prependFrom.current = null;
+    }
+  }, [messages]);
+
+  const loadOlder = async () => {
+    const oldest = messages[0];
+    if (!oldest) return;
+    setLoadingOlder(true);
+    const { data } = await supabase
+      .from("messages")
+      .select("id, room_id, user_id, body, created_at")
+      .eq("room_id", roomId)
+      .lt("created_at", oldest.created_at)
+      .order("created_at", { ascending: false })
+      .limit(PAGE_OLDER)
+      .returns<Message[]>();
+    setLoadingOlder(false);
+    if (!data) return;
+    setHasMore(data.length === PAGE_OLDER);
+    prependFrom.current = listRef.current?.scrollHeight ?? null;
+    setMessages((prev) => [...data.reverse().filter((m) => !prev.some((p) => p.id === m.id)), ...prev]);
+  };
+
+  // Con el chat abierto, todo lo que hay en pantalla cuenta como leído
+  useEffect(() => {
+    if (canWrite) void supabase.rpc("mark_room_read", { rid: roomId });
+  }, [supabase, roomId, canWrite, messages.length]);
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +145,14 @@ export function Chat({
 
   return (
     <div className="card flex h-[calc(100dvh-15rem)] min-h-80 flex-col p-0">
-      <div className="flex-1 space-y-1 overflow-y-auto p-4">
+      <div ref={listRef} className="flex-1 space-y-1 overflow-y-auto p-4">
+        {hasMore && (
+          <div className="pb-2 text-center">
+            <button type="button" className="btn-ghost text-xs" onClick={loadOlder} disabled={loadingOlder}>
+              {loadingOlder ? t.chat.loading : t.chat.loadOlder}
+            </button>
+          </div>
+        )}
         {messages.length === 0 && <p className="muted mt-10 text-center text-sm">{t.chat.empty}</p>}
         {messages.map((m, i) => {
           const prev = messages[i - 1];

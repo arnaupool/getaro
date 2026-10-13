@@ -43,6 +43,9 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/getaro:latest
             ghcr.io/${{ github.repository_owner }}/getaro:${{ github.sha }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha

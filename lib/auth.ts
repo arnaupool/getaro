@@ -21,7 +21,7 @@ export const getSession = cache(async (): Promise<Session> => {
 
   const { data, error: profileError } = await supabase
     .from("profiles")
-    .select("id, display_name, avatar_url, color, is_admin")
+    .select("id, display_name, avatar_url, color, gender, is_admin")
     .eq("id", user.id)
     .maybeSingle<Profile>();
   if (profileError) return { status: "unavailable" };

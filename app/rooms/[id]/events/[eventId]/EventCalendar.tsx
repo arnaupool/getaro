@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { setFinalDate } from "@/app/actions";
+import { setFinalDate, updateEventDetails } from "@/app/actions";
+import { ActionForm, SubmitButton } from "@/components/forms";
 import { Avatar } from "@/components/Avatar";
 import { useI18n } from "@/components/I18nProvider";
 import {
@@ -219,6 +220,10 @@ export function EventCalendar({
         <FinalBanner
           start={event.final_start}
           end={event.final_end}
+          time={event.final_time}
+          location={event.location}
+          roomId={roomId}
+          eventId={event.id}
           members={members}
           summaries={summaries}
           canManage={canManage}
@@ -556,6 +561,10 @@ function DayDetail({
 function FinalBanner({
   start,
   end,
+  time,
+  location,
+  roomId,
+  eventId,
   members,
   summaries,
   canManage,
@@ -564,6 +573,10 @@ function FinalBanner({
 }: {
   start: string;
   end: string;
+  time: string | null;
+  location: string | null;
+  roomId: string;
+  eventId: string;
   members: Member[];
   summaries: Map<string, DaySummary>;
   canManage: boolean;
@@ -587,6 +600,11 @@ function FinalBanner({
             {t.calendar.finalLabel}
           </p>
           <p className="text-lg font-semibold first-letter:uppercase">{formatRange(start, end, locale)}</p>
+          {(time || location) && (
+            <p className="text-sm font-medium break-words">
+              {[time?.slice(0, 5), location].filter(Boolean).join(" · ")}
+            </p>
+          )}
           {coming.length > 0 && (
             <p className="muted text-xs">{t.calendar.hadMarked(coming.map((m) => m.display_name).join(", "))}</p>
           )}
@@ -597,6 +615,43 @@ function FinalBanner({
           </button>
         )}
       </div>
+      {canManage && (
+        <details className="mt-3 border-t border-amber-200 pt-3 dark:border-amber-800/60">
+          <summary className="cursor-pointer text-sm font-medium text-amber-800 dark:text-amber-300">
+            {time || location ? t.calendar.editDetails : t.calendar.addDetails}
+          </summary>
+          <ActionForm action={updateEventDetails} className="mt-3 flex flex-wrap items-end gap-2">
+            <input type="hidden" name="roomId" value={roomId} />
+            <input type="hidden" name="eventId" value={eventId} />
+            <div>
+              <label className="label" htmlFor="final_time">
+                {t.calendar.time}
+              </label>
+              <input
+                id="final_time"
+                name="final_time"
+                type="time"
+                defaultValue={time?.slice(0, 5) ?? ""}
+                className="input w-32"
+              />
+            </div>
+            <div className="min-w-48 flex-1">
+              <label className="label" htmlFor="location">
+                {t.calendar.location}
+              </label>
+              <input
+                id="location"
+                name="location"
+                maxLength={200}
+                defaultValue={location ?? ""}
+                placeholder={t.calendar.locationPlaceholder}
+                className="input"
+              />
+            </div>
+            <SubmitButton className="btn-secondary">{t.common.save}</SubmitButton>
+          </ActionForm>
+        </details>
+      )}
     </div>
   );
 }

@@ -1,20 +1,26 @@
+import type { Gender } from "./i18n/dictionaries";
+
 export type Profile = {
   id: string;
   display_name: string;
   avatar_url: string | null;
   color: string;
+  gender: Gender | null;
   is_admin: boolean;
 };
 
-export type Member = Pick<Profile, "id" | "display_name" | "avatar_url" | "color">;
+export type Member = Pick<Profile, "id" | "display_name" | "avatar_url" | "color" | "gender">;
 
 export type Room = {
   id: string;
   name: string;
   invite_code: string;
   owner_id: string | null;
+  require_approval: boolean;
   created_at: string;
 };
+
+export type JoinRequest = { member: Member; created_at: string };
 
 export type RoomEvent = {
   id: string;
@@ -26,6 +32,9 @@ export type RoomEvent = {
   created_by: string | null;
   final_start: string | null;
   final_end: string | null;
+  /** "HH:MM:SS" */
+  final_time: string | null;
+  location: string | null;
   created_at: string;
 };
 

@@ -8,6 +8,7 @@ import type { Message } from "@/lib/types";
 import { Chat } from "./Chat";
 import { EventsTab } from "./EventsTab";
 import { PeopleTab } from "./PeopleTab";
+import { UnreadBadge } from "./UnreadBadge";
 
 const TABS = [
   { key: "eventos", label: "tabEvents" },
@@ -29,6 +30,10 @@ export default async function RoomPage({
   const ctx = await getRoomContext(id);
   const { t } = await getI18n();
   const { room, members, me } = ctx;
+  const supabase = await createClient();
+  const { data: unreadRows } = await supabase.rpc("unread_counts");
+  const unread =
+    ((unreadRows ?? []) as { room_id: string; unread: number }[]).find((r) => r.room_id === id)?.unread ?? 0;
 
   return (
     <div className="space-y-5">
@@ -56,6 +61,14 @@ export default async function RoomPage({
             }`}
           >
             {t.room[x.label]}
+            {x.key === "chat" && ctx.isMember && (
+              <UnreadBadge key={tab} roomId={id} meId={me.id} initial={unread} active={tab === "chat"} />
+            )}
+            {x.key === "gente" && ctx.requests.length > 0 && (
+              <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-violet-600 px-1.5 text-xs text-white">
+                {ctx.requests.length}
+              </span>
+            )}
           </Link>
         ))}
       </nav>

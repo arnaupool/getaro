@@ -21,6 +21,10 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 # tzdata: "hoy" en el calendario y las validaciones debe ser el de España, no UTC
 RUN apk add --no-cache tzdata
+# Versión que muestra Admin > Sistema (la pasa GitHub Actions)
+ARG GIT_SHA=""
+ARG BUILD_DATE=""
+ENV GIT_SHA=$GIT_SHA BUILD_DATE=$BUILD_DATE
 ENV NODE_ENV=production     NEXT_TELEMETRY_DISABLED=1     PORT=3000     HOSTNAME=0.0.0.0     TZ=Europe/Madrid
 COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static

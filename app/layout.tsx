@@ -18,7 +18,13 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
-  return { title: "getaro", description: t.meta.description };
+  return {
+    title: "getaro",
+    description: t.meta.description,
+    // iPhone: "Afegir a la pantalla d'inici" abre la app sin barra del navegador
+    appleWebApp: { capable: true, title: "getaro", statusBarStyle: "default" },
+    icons: { apple: "/apple-touch-icon.png" },
+  };
 }
 
 export const viewport: Viewport = {
