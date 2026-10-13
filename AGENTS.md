@@ -7,6 +7,9 @@
 ## Resumen rápido (ver STATE.md para detalles)
 - Next.js 16 + Supabase (Auth, Postgres con RLS, Realtime). Sin ORM: consultas con `@supabase/ssr`.
 - Toda la autorización vive en RLS/RPCs de `supabase/migrations/`. Cambios de permisos → nueva migración SQL.
+- Migraciones: se aplican con el conector de Supabase (`apply_migration`) y se prueban con un bloque `do $$ ... raise exception` que lo deshace todo, usando cuentas **no admin**.
+- Nunca `grant execute on all functions`: conceder EXECUTE función a función. Funciones internas y de triggers sin EXECUTE para `authenticated` (ver 0008).
+- Un INSERT con RETURNING exige cumplir la política SELECT en ese momento (los triggers AFTER llegan tarde; ver 0009).
 - Fechas de día siempre como strings `YYYY-MM-DD` con los helpers de `lib/dates.ts` (UTC).
 - Repo `arnaupool/getaro` (privado). Tras verificar cada cambio: commit y push a `main`; GitHub Actions publica la imagen para Unraid.
 
