@@ -15,6 +15,8 @@ cualquier cambio de base de datos, [`docs/DATABASE.md`](docs/DATABASE.md).
 - Fechas de día siempre como texto `YYYY-MM-DD` con los ayudantes de `lib/dates.ts`.
 - Textos de la interfaz siempre en `lib/i18n/dictionaries.ts`, en valencià y castellano.
 - Las server actions devuelven `{ error }` en lugar de lanzar: en producción Next.js oculta los mensajes lanzados.
+- Redirecciones en route handlers con `relativeRedirect` (`lib/redirect.ts`): dentro de Docker `request.url` vale
+  `http://0.0.0.0:3000`.
 - Antes de cada commit, `npm run check`. Tras verificar un cambio: commit y push a `main` (GitHub Actions publica la
   imagen para Unraid).
 
