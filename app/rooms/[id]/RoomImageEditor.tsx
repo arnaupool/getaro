@@ -7,7 +7,17 @@ import { RoomAvatar } from "@/components/RoomAvatar";
 import { ROOM_IMAGES_BUCKET } from "@/lib/room-image";
 import { createClient } from "@/lib/supabase/client";
 
-const PRESETS = ["🎉", "🍻", "🍕", "☕", "🏖️", "⛰️", "🎬", "🎤", "💃", "🎲", "🌮", "🍷", "⚽", "🎂", "✈️", "🫶"];
+// Emojis elegidos a mano por categoría: se escogen con un toque, sin teclado ni códigos
+const EMOJI_GROUPS = {
+  featured: ["🎉", "🍻", "🍕", "☕", "🏖️", "⛰️", "🎬", "🎤", "💃", "🎲", "🌮", "🍷", "⚽", "🎂", "✈️", "🫶"],
+  party: ["🎉", "🎊", "🥳", "🎂", "🎁", "🎈", "🎤", "💃", "🕺", "🪩", "🎶", "🎸", "🎲", "🃏", "🎮", "🎳"],
+  food: ["🍕", "🍔", "🌮", "🍣", "🍝", "🥘", "🍤", "🥗", "🍰", "🍦", "☕", "🍻", "🍷", "🍹", "🥂", "🧉"],
+  sport: ["⚽", "🏀", "🎾", "🏐", "🚴", "🏃", "🏊", "🧗", "🥾", "⛷️", "🏄", "🧘", "🏓", "🛹", "🏋️", "🎯"],
+  travel: ["✈️", "🚗", "🚆", "🚢", "🏖️", "⛰️", "🏕️", "🗺️", "🏰", "🎡", "🏝️", "🚐", "🧳", "🌍", "🗼", "🌋"],
+  nature: ["🌸", "🌻", "🌲", "🌊", "☀️", "🌙", "⭐", "🌈", "🔥", "❄️", "🍂", "🐶", "🐱", "🦊", "🐢", "🦋"],
+  things: ["🎬", "📚", "🎨", "📸", "🎧", "💜", "🫶", "❤️", "✨", "💬", "🏠", "🎓", "💼", "🛍️", "🧶", "🍀"],
+} as const;
+type EmojiGroup = keyof typeof EMOJI_GROUPS;
 const SIZE = 256;
 
 /** Recorta al centro en cuadrado y reduce a 256 px (WebP si el navegador lo admite) */
@@ -41,7 +51,7 @@ export function RoomImageEditor({
   const { t } = useI18n();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const [custom, setCustom] = useState("");
+  const [group, setGroup] = useState<EmojiGroup>("featured");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const run = (task: () => Promise<{ error?: string } | undefined>) =>
@@ -101,17 +111,43 @@ export function RoomImageEditor({
         </div>
       </div>
 
-      <div>
-        <p className="label">{t.people.chooseEmoji}</p>
-        <div className="flex flex-wrap gap-1">
-          {PRESETS.map((e) => (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="label mb-0">{t.people.chooseEmoji}</p>
+          {emoji && (
+            <button type="button" className="btn-ghost text-xs" disabled={pending} onClick={() => chooseEmoji("")}>
+              {t.people.noEmoji}
+            </button>
+          )}
+        </div>
+        <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]" role="tablist">
+          {(Object.keys(EMOJI_GROUPS) as EmojiGroup[]).map((g) => (
+            <button
+              key={g}
+              type="button"
+              role="tab"
+              aria-selected={group === g}
+              onClick={() => setGroup(g)}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition ${
+                group === g
+                  ? "bg-violet-600 text-white"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              }`}
+            >
+              {t.people.emojiGroups[g]}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-8 gap-1" role="tabpanel">
+          {EMOJI_GROUPS[group].map((e) => (
             <button
               key={e}
               type="button"
               disabled={pending}
               onClick={() => chooseEmoji(e)}
               aria-pressed={emoji === e}
-              className={`h-10 w-10 rounded-xl text-xl transition hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+              aria-label={e}
+              className={`flex aspect-square items-center justify-center rounded-xl text-xl transition hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
                 emoji === e ? "bg-violet-100 ring-2 ring-violet-500 dark:bg-violet-900/40" : ""
               }`}
             >
@@ -119,30 +155,6 @@ export function RoomImageEditor({
             </button>
           ))}
         </div>
-        <form
-          className="mt-2 flex flex-wrap gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (custom.trim()) chooseEmoji(custom.trim());
-          }}
-        >
-          <input
-            value={custom}
-            onChange={(e) => setCustom(e.target.value)}
-            maxLength={16}
-            placeholder={t.people.customEmoji}
-            className="input w-40"
-            aria-label={t.people.customEmoji}
-          />
-          <button type="submit" className="btn-secondary" disabled={pending || !custom.trim()}>
-            {t.common.save}
-          </button>
-          {emoji && (
-            <button type="button" className="btn-ghost" disabled={pending} onClick={() => chooseEmoji("")}>
-              {t.people.noEmoji}
-            </button>
-          )}
-        </form>
       </div>
 
       {imageUrl && <p className="muted text-xs">{t.people.photoWins}</p>}
