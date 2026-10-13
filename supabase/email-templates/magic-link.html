@@ -2,7 +2,7 @@
 <p>Toca el botó per a entrar:</p>
 <p>
   <a
-    href="{{ .ConfirmationURL }}"
+    href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email"
     style="
       display: inline-block;
       padding: 10px 18px;
