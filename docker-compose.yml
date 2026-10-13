@@ -1,0 +1,12 @@
+# Alternativa a la plantilla de Unraid para quien use Compose.
+services:
+  getaro:
+    image: ghcr.io/arnaupool/getaro:latest
+    container_name: getaro
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    environment:
+      SUPABASE_URL: https://xxxx.supabase.co
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_xxx
+      TZ: Europe/Madrid
