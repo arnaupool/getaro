@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { AvatarStack } from "@/components/Avatar";
 import { CopyButton } from "@/components/forms";
+import { RoomAvatar } from "@/components/RoomAvatar";
 import { getI18n } from "@/lib/i18n/server";
+import { roomImageUrl } from "@/lib/room-image";
 import { getRoomContext } from "@/lib/room";
 import { createClient } from "@/lib/supabase/server";
 import type { Message } from "@/lib/types";
@@ -38,6 +40,7 @@ export default async function RoomPage({
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
+        <RoomAvatar name={room.name} emoji={room.emoji} imageUrl={roomImageUrl(room.image_path)} />
         <div className="mr-auto min-w-0">
           <Link href="/" className="muted text-sm hover:underline">
             ← {t.common.myRooms}

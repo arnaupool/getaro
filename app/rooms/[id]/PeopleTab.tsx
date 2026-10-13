@@ -12,7 +12,9 @@ import { Avatar } from "@/components/Avatar";
 import { ActionForm, CopyButton, SubmitButton } from "@/components/forms";
 import { getI18n } from "@/lib/i18n/server";
 import type { getRoomContext } from "@/lib/room";
+import { roomImageUrl } from "@/lib/room-image";
 import { ApprovalToggle } from "./ApprovalToggle";
+import { RoomImageEditor } from "./RoomImageEditor";
 
 type Ctx = Awaited<ReturnType<typeof getRoomContext>>;
 
@@ -122,6 +124,15 @@ export async function PeopleTab({ ctx }: { ctx: Ctx }) {
       {canManageRoom && (
         <section className="card space-y-3">
           <h2 className="font-semibold">{t.people.roomSettings}</h2>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{t.people.roomImage}</p>
+            <RoomImageEditor
+              roomId={room.id}
+              name={room.name}
+              emoji={room.emoji}
+              imageUrl={roomImageUrl(room.image_path)}
+            />
+          </div>
           <ApprovalToggle roomId={room.id} enabled={room.require_approval} />
           <ActionForm action={renameRoom} className="flex flex-wrap gap-2">
             <input type="hidden" name="roomId" value={room.id} />

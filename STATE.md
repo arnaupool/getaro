@@ -22,12 +22,13 @@ Fuente de verdad del producto: `docs/SPEC.md`. Los docs de `docs/spec-legacy/` e
 - **Hora y lugar** (0005) al fijar la fecha; "Pròximes quedades" en el dashboard. Chat con "Veure missatges anteriors" (100 + 50 por página).
 - **PWA**: `app/manifest.ts`, iconos en `public/`, instalable en Android e iPhone.
 - **Admin v2** (0006, `docs/ADMIN.md`): pestañas Resum (personas activas + gráfica 30 días), Comptes (buscador y ficha: renombrar, admin, cerrar sesiones, borrar), Sales (ficha, cambiar titular), Historial (audit_log por triggers, 90 días), Sistema (Supabase, MB usados, commit desplegado). Actividad diaria registrada desde `proxy.ts` (cookie `seen`).
+- **Imagen de sala** (0007): emoji o foto. Fotos en Supabase Storage (bucket público `room-images`, ruta `<room_id>/<id>.webp`), recortadas a 256 px en el navegador; solo titular o admin sube/borra (políticas en `storage.objects`). Editor en Gent > Ajustes de la sala; se ve en inicio, cabecera, invitación y admin.
 - **Tests**: `lib/availability.test.ts` (8 tests de lógica pura).
 - Verificado: `tsc`, `eslint`, `next build`, y UI del calendario revisada en navegador con datos falsos.
 
 ## ⬜ Pendiente
 - Probar el flujo completo con varias usuarias reales (login → sala → evento → marcar → chat → admin).
-- **Ejecutar en Supabase las migraciones 0002 a 0006** (pendientes) y después hacer push; hasta entonces no subir nada a main.
+- **Ejecutar en Supabase las migraciones 0002 a 0007** (pendientes) y después hacer push; hasta entonces no subir nada a main.
 - Pegar plantillas de correo, configurar SMTP de Resend, instalar en Unraid, ruta en Cloudflare Tunnel.
 
 ## 📁 Estructura

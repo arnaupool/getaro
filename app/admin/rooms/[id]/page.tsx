@@ -2,6 +2,8 @@ import Link from "next/link";
 import { adminTransferRoom, deleteRoom } from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
 import { ActionForm, SubmitButton } from "@/components/forms";
+import { RoomAvatar } from "@/components/RoomAvatar";
+import { roomImageUrl } from "@/lib/room-image";
 import { formatTimestamp } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
 import { formatRange, formatRangeCompact } from "@/lib/dates";
@@ -36,7 +38,10 @@ export default async function AdminRoomPage({ params }: { params: Promise<{ id: 
         <Link href="/admin?tab=sales" className="muted text-sm hover:underline">
           {t.admin.back}
         </Link>
-        <h1 className="text-2xl font-bold break-words">{room.name}</h1>
+        <h1 className="flex items-center gap-3 text-2xl font-bold break-words">
+          <RoomAvatar name={room.name} emoji={room.emoji} imageUrl={roomImageUrl(room.image_path)} size="sm" />
+          {room.name}
+        </h1>
         <p className="muted text-sm">
           {t.admin.owner}: {owner?.display_name ?? "–"}
         </p>

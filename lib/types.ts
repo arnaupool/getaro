@@ -17,6 +17,8 @@ export type Room = {
   invite_code: string;
   owner_id: string | null;
   require_approval: boolean;
+  emoji: string | null;
+  image_path: string | null;
   created_at: string;
 };
 

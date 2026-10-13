@@ -2,7 +2,9 @@ import Link from "next/link";
 import { createRoom, joinRoom } from "./actions";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { requireProfile } from "@/lib/auth";
+import { RoomAvatar } from "@/components/RoomAvatar";
 import { formatRange, todayISO } from "@/lib/dates";
+import { roomImageUrl } from "@/lib/room-image";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,6 +13,8 @@ type RoomRow = {
     id: string;
     name: string;
     owner_id: string | null;
+    emoji: string | null;
+    image_path: string | null;
     room_members: { count: number }[];
     events: { count: number }[];
   } | null;
@@ -23,7 +27,7 @@ export default async function Dashboard() {
   const [{ data }, { data: requestRows }, { data: myRequests }, { data: unreadRows }] = await Promise.all([
     supabase
       .from("room_members")
-      .select("rooms(id, name, owner_id, room_members(count), events(count))")
+      .select("rooms(id, name, owner_id, emoji, image_path, room_members(count), events(count))")
       .eq("user_id", me.id)
       .order("joined_at", { ascending: false })
       .returns<RoomRow[]>(),
@@ -80,29 +84,33 @@ export default async function Dashboard() {
               <li key={room.id}>
                 <Link
                   href={`/rooms/${room.id}`}
-                  className="card block transition hover:border-violet-400 hover:shadow-md"
+                  className="card flex gap-3 transition hover:border-violet-400 hover:shadow-md"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h2 className="min-w-0 font-semibold break-words">{room.name}</h2>
-                    {room.owner_id === me.id && (
-                      <span className="badge bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
-                        {t.common.owner(me.gender ?? "n")}
-                      </span>
+                  <RoomAvatar name={room.name} emoji={room.emoji} imageUrl={roomImageUrl(room.image_path)} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h2 className="min-w-0 font-semibold break-words">{room.name}</h2>
+                      {room.owner_id === me.id && (
+                        <span className="badge bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                          {t.common.owner(me.gender ?? "n")}
+                        </span>
+                      )}
+                    </div>
+                    {(unreadByRoom.get(room.id) ?? 0) > 0 && (
+                      <p className="mt-1 text-sm font-medium text-rose-600 dark:text-rose-400">
+                        {t.dashboard.unread(unreadByRoom.get(room.id)!)}
+                      </p>
                     )}
+                    {(pendingByRoom.get(room.id) ?? 0) > 0 && (
+                      <p className="mt-1 text-sm font-medium text-violet-600 dark:text-violet-400">
+                        {t.dashboard.requestsBadge(pendingByRoom.get(room.id)!)}
+                      </p>
+                    )}
+                    <p className="muted mt-1 text-sm">
+                      {t.common.people(room.room_members[0]?.count ?? 0)} ·{" "}
+                      {t.common.events(room.events[0]?.count ?? 0)}
+                    </p>
                   </div>
-                  {(unreadByRoom.get(room.id) ?? 0) > 0 && (
-                    <p className="mt-1 text-sm font-medium text-rose-600 dark:text-rose-400">
-                      {t.dashboard.unread(unreadByRoom.get(room.id)!)}
-                    </p>
-                  )}
-                  {(pendingByRoom.get(room.id) ?? 0) > 0 && (
-                    <p className="mt-1 text-sm font-medium text-violet-600 dark:text-violet-400">
-                      {t.dashboard.requestsBadge(pendingByRoom.get(room.id)!)}
-                    </p>
-                  )}
-                  <p className="muted mt-1 text-sm">
-                    {t.common.people(room.room_members[0]?.count ?? 0)} · {t.common.events(room.events[0]?.count ?? 0)}
-                  </p>
                 </Link>
               </li>
             ))}

@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { cancelJoinRequest, joinRoom } from "@/app/actions";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { requireProfile } from "@/lib/auth";
+import { RoomAvatar } from "@/components/RoomAvatar";
 import { getI18n } from "@/lib/i18n/server";
+import { roomImageUrl } from "@/lib/room-image";
 import { createClient } from "@/lib/supabase/server";
 
 type Preview = {
@@ -13,6 +15,8 @@ type Preview = {
   already_member: boolean;
   pending: boolean;
   require_approval: boolean;
+  emoji: string | null;
+  image_path: string | null;
 };
 
 export default async function JoinPage({ params }: { params: Promise<{ code: string }> }) {
@@ -39,7 +43,8 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   }
 
   const header = (
-    <div>
+    <div className="flex flex-col items-center gap-2">
+      <RoomAvatar name={room.name} emoji={room.emoji} imageUrl={roomImageUrl(room.image_path)} size="lg" />
       <p className="muted text-sm">{t.join.invitedTo}</p>
       <h1 className="text-2xl font-bold break-words">{room.name}</h1>
       <p className="muted mt-1 text-sm">{t.join.inside(room.member_count)}</p>
@@ -49,7 +54,6 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   if (room.pending) {
     return (
       <ActionForm action={cancelJoinRequest} className="card mx-auto mt-10 max-w-sm space-y-4 text-center">
-        <p className="text-4xl">⏳</p>
         {header}
         <div>
           <p className="font-medium">{t.join.pendingTitle}</p>
@@ -68,7 +72,6 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
 
   return (
     <ActionForm action={joinRoom} className="card mx-auto mt-10 max-w-sm space-y-4 text-center">
-      <p className="text-4xl">💌</p>
       {header}
       {room.require_approval && <p className="muted text-sm">{t.join.needsApproval}</p>}
       <input type="hidden" name="code" value={code} />

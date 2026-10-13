@@ -14,7 +14,7 @@ export const getRoomContext = cache(async (roomId: string) => {
   const [{ data: room }, { data: memberRows }] = await Promise.all([
     supabase
       .from("rooms")
-      .select("id, name, invite_code, owner_id, require_approval, created_at")
+      .select("id, name, invite_code, owner_id, require_approval, emoji, image_path, created_at")
       .eq("id", roomId)
       .maybeSingle<Room>(),
     supabase

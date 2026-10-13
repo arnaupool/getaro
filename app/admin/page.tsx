@@ -10,7 +10,9 @@ import {
 } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
 import type { Dict, Locale } from "@/lib/i18n/dictionaries";
+import { RoomAvatar } from "@/components/RoomAvatar";
 import { getI18n } from "@/lib/i18n/server";
+import { roomImageUrl } from "@/lib/room-image";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityChart, type ActivityPoint } from "./ActivityChart";
 import { UserList, type AdminUser } from "./UserList";
@@ -111,6 +113,8 @@ async function AccountsTab() {
 type AdminRoom = {
   id: string;
   name: string;
+  emoji: string | null;
+  image_path: string | null;
   owner: { display_name: string } | null;
   room_members: { count: number }[];
   events: { count: number }[];
@@ -122,7 +126,7 @@ async function RoomsTab({ t }: { t: Dict }) {
   const { data } = await supabase
     .from("rooms")
     .select(
-      "id, name, owner:profiles!rooms_owner_id_fkey(display_name), room_members(count), events(count), join_requests(count)",
+      "id, name, emoji, image_path, owner:profiles!rooms_owner_id_fkey(display_name), room_members(count), events(count), join_requests(count)",
     )
     .order("created_at", { ascending: false })
     .returns<AdminRoom[]>();
@@ -133,17 +137,20 @@ async function RoomsTab({ t }: { t: Dict }) {
         const pending = r.join_requests[0]?.count ?? 0;
         return (
           <li key={r.id}>
-            <Link href={`/admin/rooms/${r.id}`} className="card block py-3 transition hover:border-violet-400">
-              <p className="font-medium break-words">{r.name}</p>
-              <p className="muted text-sm">
-                {r.owner?.display_name ?? "—"} · {t.common.people(r.room_members[0]?.count ?? 0)} ·{" "}
-                {t.common.events(r.events[0]?.count ?? 0)}
-              </p>
-              {pending > 0 && (
-                <p className="text-sm font-medium text-violet-600 dark:text-violet-400">
-                  {t.dashboard.requestsBadge(pending)}
+            <Link href={`/admin/rooms/${r.id}`} className="card flex gap-3 py-3 transition hover:border-violet-400">
+              <RoomAvatar name={r.name} emoji={r.emoji} imageUrl={roomImageUrl(r.image_path)} size="sm" />
+              <div className="min-w-0 flex-1">
+                <p className="font-medium break-words">{r.name}</p>
+                <p className="muted text-sm">
+                  {r.owner?.display_name ?? "—"} · {t.common.people(r.room_members[0]?.count ?? 0)} ·{" "}
+                  {t.common.events(r.events[0]?.count ?? 0)}
                 </p>
-              )}
+                {pending > 0 && (
+                  <p className="text-sm font-medium text-violet-600 dark:text-violet-400">
+                    {t.dashboard.requestsBadge(pending)}
+                  </p>
+                )}
+              </div>
             </Link>
           </li>
         );

@@ -9,6 +9,7 @@ import { requireAdmin, requireProfile } from "@/lib/auth";
 import { diffDays, todayISO } from "@/lib/dates";
 import { isLocale, LOCALE_COOKIE, type Dict, type Locale } from "@/lib/i18n/dictionaries";
 import { getI18n } from "@/lib/i18n/server";
+import { ROOM_IMAGES_BUCKET } from "@/lib/room-image";
 import { createClient } from "@/lib/supabase/server";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -82,6 +83,39 @@ export async function rejectJoinRequest(_: ActionState, fd: FormData): Promise<A
   if (error || !data?.length) return { error: t.errors.request };
   revalidatePath(`/rooms/${roomId}`);
   revalidatePath("/");
+}
+
+export async function setRoomEmoji(roomId: string, emoji: string): Promise<ActionState> {
+  const { t } = await getI18n();
+  const value = emoji.trim().slice(0, 16) || null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("rooms").update({ emoji: value }).eq("id", roomId).select("id");
+  if (error || !data?.length) return { error: t.errors.save };
+  revalidatePath("/", "layout");
+}
+
+/** Tras subir la foto desde el navegador: la guarda en la sala y borra la anterior */
+export async function setRoomImage(roomId: string, path: string): Promise<ActionState> {
+  const { t } = await getI18n();
+  if (!path.startsWith(`${roomId}/`)) return { error: t.people.imageError };
+  const supabase = await createClient();
+  const { data: before } = await supabase.from("rooms").select("image_path").eq("id", roomId).maybeSingle();
+  const { data, error } = await supabase.from("rooms").update({ image_path: path }).eq("id", roomId).select("id");
+  if (error || !data?.length) return { error: t.people.imageError };
+  if (before?.image_path && before.image_path !== path) {
+    await supabase.storage.from(ROOM_IMAGES_BUCKET).remove([before.image_path]);
+  }
+  revalidatePath("/", "layout");
+}
+
+export async function clearRoomImage(roomId: string): Promise<ActionState> {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const { data: before } = await supabase.from("rooms").select("image_path").eq("id", roomId).maybeSingle();
+  const { data, error } = await supabase.from("rooms").update({ image_path: null }).eq("id", roomId).select("id");
+  if (error || !data?.length) return { error: t.errors.save };
+  if (before?.image_path) await supabase.storage.from(ROOM_IMAGES_BUCKET).remove([before.image_path]);
+  revalidatePath("/", "layout");
 }
 
 export async function setRequireApproval(_: ActionState, fd: FormData): Promise<ActionState> {
