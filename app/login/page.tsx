@@ -1,4 +1,3 @@
-import { LanguageSelect } from "@/components/LanguageSelect";
 import { supabaseConfig } from "@/lib/config";
 import { getI18n } from "@/lib/i18n/server";
 import { LoginForm } from "./LoginForm";
@@ -34,7 +33,6 @@ export default async function LoginPage({
         <h1 className="text-3xl font-bold tracking-tight">
           get<span className="text-violet-600">aro</span>
         </h1>
-        <LanguageSelect compact />
       </div>
       <div className="card mt-6">
         <LoginForm next={safeNext} googleEnabled={googleEnabled} devLogin={process.env.NODE_ENV === "development"} />

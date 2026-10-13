@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { Avatar } from "./Avatar";
+import { LanguageSelect } from "./LanguageSelect";
 import { ThemeToggle } from "./ThemeToggle";
 
 export async function Header() {
@@ -14,10 +15,11 @@ export async function Header() {
           get<span className="text-violet-600">aro</span>
         </Link>
         {profile?.is_admin && (
-          <Link href="/admin" className="btn-ghost">
+          <Link href="/admin" className="btn-ghost px-1.5 sm:px-2">
             {t.header.admin}
           </Link>
         )}
+        <LanguageSelect />
         <ThemeToggle />
         {profile && (
           <>
@@ -25,8 +27,18 @@ export async function Header() {
               <Avatar member={profile} size="sm" />
             </Link>
             <form action="/auth/signout" method="post">
-              <button className="btn-ghost" title={t.header.signOutTitle}>
-                {t.header.signOut}
+              <button className="btn-ghost" title={t.header.signOutTitle} aria-label={t.header.signOutTitle}>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 sm:hidden"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+                <span className="hidden sm:inline">{t.header.signOut}</span>
               </button>
             </form>
           </>

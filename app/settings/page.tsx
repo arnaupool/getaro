@@ -1,6 +1,5 @@
 import { updateProfile } from "@/app/actions";
 import { ActionForm, SubmitButton } from "@/components/forms";
-import { LanguageSelect } from "@/components/LanguageSelect";
 import { ThemeSelect } from "@/components/ThemeToggle";
 import { requireProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
@@ -35,11 +34,6 @@ export default async function SettingsPage() {
         </div>
         <SubmitButton pendingText={t.common.saving}>{t.common.save}</SubmitButton>
       </ActionForm>
-
-      <section className="card space-y-3">
-        <h2 className="font-semibold">{t.settings.language}</h2>
-        <LanguageSelect />
-      </section>
 
       <section className="card space-y-3">
         <h2 className="font-semibold">{t.settings.appearance}</h2>
