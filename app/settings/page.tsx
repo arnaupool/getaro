@@ -2,12 +2,15 @@ import { updateProfile } from "@/app/actions";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { ThemeSelect } from "@/components/ThemeToggle";
 import { requireProfile } from "@/lib/auth";
+import { formatTimestamp } from "@/lib/admin";
 import { getI18n } from "@/lib/i18n/server";
+import { getVersion } from "@/lib/version";
 import { ColorPicker } from "./ColorPicker";
 
 export default async function SettingsPage() {
   const me = await requireProfile();
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const version = getVersion();
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
@@ -59,6 +62,11 @@ export default async function SettingsPage() {
         <h2 className="font-semibold">{t.settings.appearance}</h2>
         <ThemeSelect />
       </section>
+
+      <p className="muted text-center text-xs">
+        {version ? t.settings.version(version.shortSha) : t.settings.devVersion}
+        {version?.builtAt && <> · {t.admin.built(formatTimestamp(version.builtAt, locale))}</>}
+      </p>
     </div>
   );
 }

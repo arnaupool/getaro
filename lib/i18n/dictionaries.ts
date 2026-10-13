@@ -215,6 +215,8 @@ const ca = {
     gender: "Com vols que et tracte l'app?",
     genders: { f: "En femení", m: "En masculí", n: "En neutre" } as Record<Gender, string>,
     appearance: "Aparença",
+    version: (sha: string) => `getaro, versió ${sha}`,
+    devVersion: "getaro, versió de desenvolupament",
   },
   admin: {
     title: "Tauler d'administració",
@@ -547,6 +549,8 @@ const es: Dict = {
     gender: "¿Cómo quieres que te trate la app?",
     genders: { f: "En femenino", m: "En masculino", n: "En neutro" },
     appearance: "Apariencia",
+    version: (sha) => `getaro, versión ${sha}`,
+    devVersion: "getaro, versión de desarrollo",
   },
   admin: {
     title: "Panel de administración",

@@ -13,6 +13,7 @@ import type { Dict, Locale } from "@/lib/i18n/dictionaries";
 import { RoomAvatar } from "@/components/RoomAvatar";
 import { getI18n } from "@/lib/i18n/server";
 import { roomImageUrl } from "@/lib/room-image";
+import { getVersion } from "@/lib/version";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityChart, type ActivityPoint } from "./ActivityChart";
 import { UserList, type AdminUser } from "./UserList";
@@ -219,8 +220,7 @@ async function SystemTab({ t, locale }: { t: Dict; locale: Locale }) {
 
   const usedMb = typeof dbBytes === "number" ? dbBytes / 1024 / 1024 : null;
   const usedPct = usedMb === null ? 0 : Math.min(100, (usedMb / 500) * 100);
-  const sha = process.env.GIT_SHA;
-  const builtAt = process.env.BUILD_DATE;
+  const version = getVersion();
 
   return (
     <section className="grid gap-3 sm:grid-cols-3">
@@ -241,17 +241,19 @@ async function SystemTab({ t, locale }: { t: Dict; locale: Locale }) {
 
       <div className="card space-y-1">
         <p className="muted text-xs">{t.admin.version}</p>
-        {sha ? (
+        {version ? (
           <>
             <a
-              href={`https://github.com/arnaupool/getaro/commit/${sha}`}
+              href={`https://github.com/arnaupool/getaro/commit/${version.sha}`}
               className="font-mono font-semibold text-violet-600 hover:underline dark:text-violet-400"
               target="_blank"
               rel="noreferrer"
             >
-              {sha.slice(0, 7)}
+              {version.shortSha}
             </a>
-            {builtAt && <p className="muted text-xs">{t.admin.built(formatTimestamp(builtAt, locale))}</p>}
+            {version.builtAt && (
+              <p className="muted text-xs">{t.admin.built(formatTimestamp(version.builtAt, locale))}</p>
+            )}
           </>
         ) : (
           <p className="muted text-sm">{t.admin.devVersion}</p>
