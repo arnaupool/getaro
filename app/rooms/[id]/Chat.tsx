@@ -114,7 +114,11 @@ export function Chat({
 
   // Con el chat abierto, todo lo que hay en pantalla cuenta como leído
   useEffect(() => {
-    if (canWrite) void supabase.rpc("mark_room_read", { rid: roomId });
+    if (!canWrite) return;
+    // Las consultas de Supabase no se envían hasta que alguien espera el resultado: hace falta el .then()
+    supabase.rpc("mark_room_read", { rid: roomId }).then(({ error }) => {
+      if (error) console.error("mark_room_read", error.message);
+    });
   }, [supabase, roomId, canWrite, messages.length]);
 
   const send = async (e: React.FormEvent) => {
