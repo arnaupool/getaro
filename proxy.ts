@@ -11,23 +11,19 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const { url: supabaseUrl, key: supabaseKey } = supabaseConfig();
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet, headers) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-          Object.entries(headers).forEach(([key, value]) => response.headers.set(key, value));
-        },
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet, headers) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        Object.entries(headers).forEach(([key, value]) => response.headers.set(key, value));
       },
     },
-  );
+  });
 
   // Refresca la sesión. No meter código entre createServerClient y getClaims.
   const { data } = await supabase.auth.getClaims();
@@ -54,7 +50,8 @@ export async function proxy(request: NextRequest) {
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date());
     if (request.cookies.get(ACTIVITY_COOKIE)?.value !== today) {
       const { error } = await supabase.rpc("touch_activity");
-      if (!error) response.cookies.set(ACTIVITY_COOKIE, today, { path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
+      if (!error)
+        response.cookies.set(ACTIVITY_COOKIE, today, { path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
     }
   }
 

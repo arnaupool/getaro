@@ -7,7 +7,7 @@ export type DaySummary = {
   maybe: string[];
 };
 
-export type DayLevel = "all-yes" | "all-maybe" | "partial" | "none";
+type DayLevel = "all-yes" | "all-maybe" | "partial" | "none";
 
 export type Window = {
   start: string;

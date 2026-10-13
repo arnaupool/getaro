@@ -1,65 +1,73 @@
-# getaro — Spec v2 (fuente de verdad)
+# Especificación de getaro
 
-> Sustituye a `docs/spec-legacy/*` (contradictorios entre sí). Decisiones tomadas el 2026-09-30.
+Qué hace la app y por qué. Es la referencia para cualquier cambio de producto; si algo de aquí cambia, se actualiza
+este documento en el mismo commit.
 
-## Qué es
-Webapp para cuadrar quedadas con amigas. Cada **sala** agrupa a un grupo de gente. Dentro de la sala se crean **eventos** (una quedada concreta: "Cena octubre", "Finde playa"). En cada evento, cada persona marca los días que puede y el calendario muestra en qué días y rachas de días coincidís.
+## Idea
+
+Coordinar días entre un grupo de amigos con agendas apretadas es difícil en un chat. getaro lo resuelve con un
+calendario compartido por cada quedada: cada persona marca lo que puede y la app enseña dónde coincidís.
+
+Vocabulario:
+
+- **Sala**: un grupo de gente (la colla del divendres, la família...). Es privada.
+- **Quedada**: un plan concreto dentro de una sala, con un rango de fechas en el que buscar día. Una sala puede tener
+  varias a la vez.
+- **Disponibilidad**: lo que cada persona marca en cada día de una quedada: *puc*, *potser* o nada.
+- **Titular**: la persona que gestiona una sala.
+- **Admin**: quien administra toda la app (panel `/admin`).
 
 ## Decisiones
+
 | Tema | Decisión |
 |------|----------|
-| Stack | Next.js 16 (App Router) + Supabase (Auth, Postgres, Realtime). Deploy: Vercel + Supabase free tier |
-| Auth | Google OAuth + magic link por email (sin contraseñas) |
-| Organización | Sala → eventos. Cada evento tiene su propio rango de fechas y su propia disponibilidad |
-| Disponibilidad | Por día. Estados: `yes` / `maybe`. Sin fila = no marcado. Clic rota vacío → sí → quizás → vacío. Arrastrar marca un rango |
-| Color | Un color por persona (perfil), elegible con color picker. Por defecto derivado del id |
-| Coincidencias | Días donde todas pueden (`yes`) = verde fuerte. Con algún `maybe` = verde claro. Rachas de días consecutivos se listan como "mejores fechas" |
-| Cierre de evento | Quien creó el evento (o la dueña de la sala) fija la fecha final (día o rango). El evento pasa a "confirmado" |
-| Crear eventos | Cualquier miembro de la sala |
-| Chat | Uno por sala, en tiempo real |
-| Invitaciones | Link compartible `/join/<CODE>` (8 caracteres A-Z0-9 sin ambiguos). La dueña puede regenerarlo |
-| Roles | **Superadmin** global (`profiles.is_admin`) con panel `/admin`. Por sala: **dueña** (`rooms.owner_id`) y **miembros** |
-| Tiempo real | Sí: chat y disponibilidad (Supabase Realtime). Si falla, un refresh basta |
-| Modo oscuro | Toda la app: claro / oscuro / sistema |
-| Días pasados | No se pueden marcar |
+| Stack | Next.js 16 y Supabase (Auth, Postgres, Realtime, Storage). Imagen Docker en Unraid |
+| Inicio de sesión | Enlace mágico por correo con código de 6 cifras de respaldo; Google opcional. Sin contraseñas |
+| Registro | Abierto. Lo que protege el contenido es la aprobación de cada sala |
+| Organización | Sala, y dentro quedadas. Cada quedada tiene su rango de fechas y su disponibilidad |
+| Disponibilidad | Por día: `yes` o `maybe`; sin fila es "no marcado". Tocar rota nada, sí, quizás; arrastrar marca un rango. Los días pasados no se pueden marcar |
+| Color | Uno por persona, elegido en Ajustes; por defecto se deriva de su id |
+| Coincidencias | Verde intenso si puede todo el grupo; verde claro si todo el grupo pero con algún `maybe`; violeta proporcional al resto |
+| Mejores fechas | Rachas de días consecutivos con el máximo de gente disponible, ordenadas por duración |
+| Fijar fecha | Quien creó la quedada o la titular. Día o rango, con hora y lugar opcionales |
+| Entrar en una sala | Enlace `/join/<código>` (8 caracteres sin ambiguos). Con aprobación activada (por defecto) se crea una solicitud; la titular acepta o rechaza |
+| Chat | Uno por sala, en tiempo real, con contador de no leídos guardado en la base de datos |
+| Imagen de sala | Foto (reducida a 256 px en el navegador, en Supabase Storage) o emoji |
+| Idioma | Valencià por defecto y castellano. Se elige en la cabecera y se guarda en una cookie |
+| Género | Cada persona elige cómo la trata la app (femenino, masculino o neutro). Los textos sobre el grupo son neutros |
+| Tema | Claro, oscuro o el del sistema |
+| Móvil | Diseño pensado primero para móvil; instalable como app (manifest e iconos) |
 
 ## Permisos
-| Acción | Miembro | Creador/a del evento | Dueña de sala | Superadmin |
-|--------|:------:|:------:|:------:|:------:|
-| Ver sala, eventos, chat, disponibilidad | ✓ | ✓ | ✓ | ✓ |
-| Marcar su disponibilidad | ✓ | ✓ | ✓ | — |
-| Crear evento / escribir en chat | ✓ | ✓ | ✓ | — |
-| Editar / fijar fecha / borrar evento | | ✓ | ✓ | ✓ |
-| Borrar mensaje ajeno | | | ✓ | ✓ |
-| Invitar (ver/regenerar link) | ver | ver | ✓ | ✓ |
-| Expulsar miembro, transferir, renombrar, borrar sala | | | ✓ | ✓ |
-| Listar/borrar usuarios, dar/quitar superadmin | | | | ✓ |
 
-- La dueña no puede salir de la sala: primero transfiere o borra la sala.
-- Si se borra una usuaria dueña de salas, la propiedad pasa al miembro más antiguo; si no queda nadie, la sala se borra.
+| Acción | Miembro | Creador de la quedada | Titular | Admin |
+|--------|:-------:|:---------------------:|:-------:|:-----:|
+| Ver sala, quedadas, chat y disponibilidad | sí | sí | sí | sí |
+| Marcar su disponibilidad, crear quedadas, escribir | sí | sí | sí | no (solo mira) |
+| Editar, fijar fecha o borrar una quedada | | sí | sí | sí |
+| Borrar mensajes de otras personas | | | sí | sí |
+| Aceptar o rechazar solicitudes, expulsar | | | sí | sí |
+| Renombrar, cambiar imagen, regenerar enlace, borrar sala | | | sí | sí |
+| Pasar la sala a otra persona | | | sí | sí |
+| Panel de administración | | | | sí |
 
-## Modelo de datos (Postgres / Supabase)
-Ver `supabase/migrations/0001_init.sql`.
-
-- `profiles` (id = auth.users.id, display_name, avatar_url, color, is_admin)
-- `rooms` (id, name, invite_code, owner_id)
-- `room_members` (room_id, user_id, joined_at) — PK compuesta
-- `events` (id, room_id, title, description, start_date, end_date, created_by, final_start, final_end)
-- `availability` (event_id, user_id, day, status ∈ {yes, maybe}) — PK (event_id, user_id, day)
-- `messages` (id, room_id, user_id, body, created_at)
-
-Toda la autorización vive en RLS + funciones `security definer` (join por código, transferir, regenerar código, set_admin). Borrar usuarias (auth) lo hace el servidor con la service role key, tras comprobar `is_admin`.
+- La titular no puede salir de su sala: primero la pasa a otra persona o la borra.
+- Si se borra la cuenta de una titular, la sala pasa al miembro más antiguo; si no queda nadie, se borra.
+- Al salir o ser expulsado de una sala se borra su disponibilidad en las quedadas de esa sala.
 
 ## Pantallas
+
 | Ruta | Contenido |
 |------|-----------|
-| `/login` | Google + magic link |
-| `/` | Mis salas + crear sala + unirse con código |
-| `/join/[code]` | Preview de la sala + "Unirme" (si no hay sesión → login → vuelve) |
-| `/rooms/[id]` | Eventos de la sala · Chat · Miembros/ajustes |
-| `/rooms/[id]/events/[eventId]` | Calendario del evento, mejores fechas, fijar fecha |
-| `/settings` | Nombre, color, tema |
-| `/admin` | Usuarios y salas: listar, borrar, dar/quitar superadmin |
+| `/login` | Correo (enlace y código), Google si está activado, acceso de pruebas solo en desarrollo |
+| `/` | Mis salas (con no leídos y solicitudes), próximas quedadas, salas en espera, crear sala, unirse con código |
+| `/join/[code]` | Vista previa de la sala: entrar, pedir entrar o "esperando aprobación" |
+| `/rooms/[id]` | Pestañas Quedades, Xat y Gent (miembros, solicitudes, invitación y ajustes de la sala) |
+| `/rooms/[id]/events/[eventId]` | Calendario, mejores fechas, quién ha marcado, fecha elegida con hora y lugar |
+| `/settings` | Nombre, cómo te trata la app, color y tema |
+| `/admin` | Resum, Comptes, Sales, Historial y Sistema (ver [`ADMIN.md`](ADMIN.md)) |
+| `/unavailable` | Aviso si Supabase no responde |
 
-## Fuera de alcance (por ahora)
-Notificaciones, franjas horarias, integración con calendarios externos, invitación por email, apps nativas.
+## Fuera de alcance
+
+Notificaciones push o por correo, franjas horarias dentro del día, integración con calendarios externos, apps nativas.

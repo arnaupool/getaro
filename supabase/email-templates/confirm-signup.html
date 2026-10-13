@@ -1,9 +1,25 @@
 <h2>Et donem la benvinguda a getaro</h2>
 <p>Confirma el teu correu per a entrar per primera vegada:</p>
-<p><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:10px 18px;background:#7c3aed;color:#ffffff;border-radius:10px;text-decoration:none;font-weight:600">Entrar a getaro</a></p>
+<p>
+  <a
+    href="{{ .ConfirmationURL }}"
+    style="
+      display: inline-block;
+      padding: 10px 18px;
+      background: #7c3aed;
+      color: #ffffff;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+    "
+    >Entrar a getaro</a
+  >
+</p>
 <p>O escriu este codi a la pantalla d'inici de sessió:</p>
-<p style="font-size:28px;font-weight:700;letter-spacing:6px;font-family:monospace">{{ .Token }}</p>
-<p style="color:#71717a;font-size:13px">Si l'enllaç no funciona perquè s'obri dins de Gmail o WhatsApp, utilitza el codi.<br>
-Si no has demanat este correu, ignora'l.</p>
-<hr style="border:none;border-top:1px solid #e4e4e7">
-<p style="color:#71717a;font-size:13px">ES: Toca el botón o escribe el código en la pantalla de inicio de sesión.</p>
+<p style="font-size: 28px; font-weight: 700; letter-spacing: 6px; font-family: monospace">{{ .Token }}</p>
+<p style="color: #71717a; font-size: 13px">
+  Si l'enllaç no funciona perquè s'obri dins de Gmail o WhatsApp, utilitza el codi.<br />
+  Si no has demanat este correu, ignora'l.
+</p>
+<hr style="border: none; border-top: 1px solid #e4e4e7" />
+<p style="color: #71717a; font-size: 13px">ES: Toca el botón o escribe el código en la pantalla de inicio de sesión.</p>

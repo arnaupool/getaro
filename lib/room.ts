@@ -4,7 +4,7 @@ import { requireProfile } from "./auth";
 import { createClient } from "./supabase/server";
 import type { JoinRequest, Member, Room } from "./types";
 
-export type RoomMember = Member & { joined_at: string };
+type RoomMember = Member & { joined_at: string };
 
 /** Sala + miembros + permisos de la usuaria actual. 404 si no existe o no tiene acceso. */
 export const getRoomContext = cache(async (roomId: string) => {

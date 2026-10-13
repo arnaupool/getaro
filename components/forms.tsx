@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { useI18n } from "./I18nProvider";
 
 export type ActionState = { error?: string; ok?: string } | undefined;
-export type FormAction = (state: ActionState, formData: FormData) => Promise<ActionState>;
+type FormAction = (state: ActionState, formData: FormData) => Promise<ActionState>;
 
 /** Formulario ligado a una server action que devuelve { error } / { ok }. */
 export function ActionForm({

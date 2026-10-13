@@ -10,7 +10,7 @@ type Session =
   | { status: "no-profile" }; // sesión válida pero sin fila en profiles
 
 /** Sesión actual. Deduplicada por request y sin redirecciones (la usa también la cabecera). */
-export const getSession = cache(async (): Promise<Session> => {
+const getSession = cache(async (): Promise<Session> => {
   const supabase = await createClient();
   const {
     data: { user },

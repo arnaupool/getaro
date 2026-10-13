@@ -10,7 +10,7 @@ export function toUTC(iso: string): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
-export function toISO(date: Date): string {
+function toISO(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 

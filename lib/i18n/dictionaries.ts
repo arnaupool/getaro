@@ -1,6 +1,6 @@
 // Textos de la interfaz. Valencià (normativa AVL) per defecte, castellano opcional.
 
-export const LOCALES = ["ca", "es"] as const;
+const LOCALES = ["ca", "es"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "ca";
 export const LOCALE_COOKIE = "lang";
@@ -215,7 +215,6 @@ const ca = {
     gender: "Com vols que et tracte l'app?",
     genders: { f: "En femení", m: "En masculí", n: "En neutre" } as Record<Gender, string>,
     appearance: "Aparença",
-    language: "Idioma",
   },
   admin: {
     title: "Tauler d'administració",
@@ -289,18 +288,12 @@ const ca = {
     version: "Versió desplegada",
     devVersion: "Desenvolupament local, sense versió",
     built: (date: string) => `Compilada: ${date}`,
-    stats: (u: number, r: number) => `${plural(u, "compte", "comptes")} · ${plural(r, "sala", "sales")}`,
     tabUsers: "Comptes",
     tabRooms: "Sales",
-    name: "Nom",
-    email: "Correu",
     rooms: "Sales",
-    lastAccess: "Últim accés",
     room: "Sala",
     owner: "Titular",
-    people: "Gent",
     events: "Quedades",
-    created: "Creada",
     removeAdmin: "Llevar admin",
     makeAdmin: "Fer admin",
     confirmRemoveAdmin: (n: string) => `Vols llevar-li l'admin a ${n}?`,
@@ -554,7 +547,6 @@ const es: Dict = {
     gender: "¿Cómo quieres que te trate la app?",
     genders: { f: "En femenino", m: "En masculino", n: "En neutro" },
     appearance: "Apariencia",
-    language: "Idioma",
   },
   admin: {
     title: "Panel de administración",
@@ -627,18 +619,12 @@ const es: Dict = {
     version: "Versión desplegada",
     devVersion: "Desarrollo local, sin versión",
     built: (date) => `Compilada: ${date}`,
-    stats: (u, r) => `${plural(u, "cuenta", "cuentas")} · ${plural(r, "sala", "salas")}`,
     tabUsers: "Cuentas",
     tabRooms: "Salas",
-    name: "Nombre",
-    email: "Email",
     rooms: "Salas",
-    lastAccess: "Último acceso",
     room: "Sala",
     owner: "Titular",
-    people: "Gente",
     events: "Eventos",
-    created: "Creada",
     removeAdmin: "Quitar admin",
     makeAdmin: "Hacer admin",
     confirmRemoveAdmin: (n) => `¿Quitar admin a ${n}?`,

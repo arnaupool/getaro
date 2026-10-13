@@ -35,7 +35,10 @@ Para cambiar el puerto o las claves más adelante: icono del contenedor, **Edit*
 
 Cuando se sube un cambio a GitHub, la imagen nueva está lista en unos 4 minutos. Entonces:
 
-Pestaña Docker, botón **Check for Updates** (abajo); en getaro aparece **apply update**: púlsalo.
+Pestaña Docker, icono de getaro, **Edit** y **Apply** sin cambiar nada: Unraid descarga la imagen nueva y recrea el
+contenedor. Otra forma: activa **Advanced View** (arriba a la derecha) y pulsa **force update** en la fila de getaro.
+
+Para confirmar la versión: getaro, Admin, Sistema, "Versió desplegada" muestra el commit en marcha.
 
 ## Acceso desde fuera de casa (Cloudflare Tunnel)
 
@@ -57,5 +60,5 @@ Supabase, Authentication, URL Configuration:
 | La página da error nada más abrirla | Faltan o están mal `SUPABASE_URL` o `SUPABASE_PUBLISHABLE_KEY` (Edit) |
 | El enlace del correo lleva a `localhost` | Falta el paso "Avisar a Supabase" |
 | Al pulsar un botón sale un error de "Server Action" por el túnel | En la ruta del túnel, deja vacío "HTTP Host Header" |
-| Unraid no encuentra actualizaciones tras un cambio | Mira que el último "Imagen Docker" de GitHub (pestaña Actions) esté en verde |
+| Tras actualizar sigue la versión anterior | Mira que el último "Imagen Docker" de GitHub (pestaña Actions) esté en verde y repite Edit, Apply |
 | No deja entrar tras una semana sin uso | Supabase (plan gratis) pausa el proyecto tras 7 días sin actividad. getaro lo evita con una consulta diaria mientras el contenedor esté encendido; si aun así pasa, entra en supabase.com y pulsa Restore |
