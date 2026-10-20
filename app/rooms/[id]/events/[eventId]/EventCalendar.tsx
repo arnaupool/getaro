@@ -88,6 +88,12 @@ export function EventCalendar({
       .filter((m) => m.days.length > 0);
   }, [event.start_date, event.end_date, selectable]);
 
+  // Ids de las filas de otras personas, para reconocer sus DELETE en tiempo real
+  const othersIds = useRef(new Set<number>());
+  useEffect(() => {
+    othersIds.current = new Set(rows.flatMap((r) => (r.user_id !== meId && r.id !== undefined ? [r.id] : [])));
+  }, [rows, meId]);
+
   // ── Datos en vivo: si otra persona marca algo, recargamos la disponibilidad del evento
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -97,13 +103,13 @@ export function EventCalendar({
         if (inflight.current > 0) return refetch();
         const { data } = await supabase
           .from("availability")
-          .select("user_id, day, status")
+          .select("id, user_id, day, status")
           .eq("event_id", event.id)
           .returns<AvailabilityRow[]>();
         if (data && inflight.current === 0) setRows(data);
       }, 400);
     };
-    type Row = { user_id?: string; event_id?: string };
+    type Row = { user_id?: string };
     const channel = supabase
       .channel(`event:${event.id}`)
       .on(
@@ -114,9 +120,10 @@ export function EventCalendar({
           if (row.user_id !== meId) refetch();
         },
       )
+      // Los DELETE llegan sin RLS y solo con el id de la fila: recargamos si era de otra persona en esta quedada
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "availability" }, (p) => {
-        const old = p.old as Row;
-        if (old.event_id === event.id && old.user_id !== meId) refetch();
+        const id = (p.old as { id?: number }).id;
+        if (id !== undefined && othersIds.current.has(id)) refetch();
       })
       .subscribe();
     return () => {
@@ -148,7 +155,7 @@ export function EventCalendar({
       setError(t.calendar.saveError);
       const { data } = await supabase
         .from("availability")
-        .select("user_id, day, status")
+        .select("id, user_id, day, status")
         .eq("event_id", event.id)
         .returns<AvailabilityRow[]>();
       if (data) setRows(data);

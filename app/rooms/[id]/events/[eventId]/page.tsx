@@ -17,7 +17,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const [{ data: event }, { data: rows }] = await Promise.all([
     supabase.from("events").select("*").eq("id", eventId).eq("room_id", id).maybeSingle<RoomEvent>(),
-    supabase.from("availability").select("user_id, day, status").eq("event_id", eventId).returns<AvailabilityRow[]>(),
+    supabase
+      .from("availability")
+      .select("id, user_id, day, status")
+      .eq("event_id", eventId)
+      .returns<AvailabilityRow[]>(),
   ]);
   if (!event) notFound();
 

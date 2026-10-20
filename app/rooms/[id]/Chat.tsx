@@ -134,7 +134,7 @@ export function Chat({
       .single();
     setSending(false);
     if (error) {
-      setError(t.chat.sendError);
+      setError(error.message.includes("rate_limited") ? t.errors.rateLimited : t.chat.sendError);
       return;
     }
     setBody("");

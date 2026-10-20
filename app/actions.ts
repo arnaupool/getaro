@@ -9,10 +9,16 @@ import { requireAdmin, requireProfile } from "@/lib/auth";
 import { diffDays, todayISO } from "@/lib/dates";
 import { isLocale, LOCALE_COOKIE, type Dict, type Locale } from "@/lib/i18n/dictionaries";
 import { getI18n } from "@/lib/i18n/server";
+import { safeNextPath } from "@/lib/safe-next";
 import { ROOM_IMAGES_BUCKET } from "@/lib/room-image";
 import { createClient } from "@/lib/supabase/server";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Error de los límites contra abuso (trigger enforce_rate_limits, migración 0010) */
+function isRateLimited(error: { message?: string }) {
+  return error.message?.includes("rate_limited") ?? false;
+}
 
 function str(fd: FormData, key: string) {
   const v = fd.get(key);
@@ -29,7 +35,7 @@ export async function createRoom(_: ActionState, fd: FormData): Promise<ActionSt
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("rooms").insert({ name, owner_id: me.id }).select("id").single();
-  if (error) return { error: t.errors.createRoom };
+  if (error) return { error: isRateLimited(error) ? t.errors.rateLimited : t.errors.createRoom };
   redirect(`/rooms/${data.id}`);
 }
 
@@ -158,7 +164,7 @@ export async function regenerateInvite(_: ActionState, fd: FormData): Promise<Ac
 export async function deleteRoom(_: ActionState, fd: FormData): Promise<ActionState> {
   const { t } = await getI18n();
   const roomId = str(fd, "roomId");
-  const redirectTo = str(fd, "redirectTo") || "/";
+  const redirectTo = safeNextPath(str(fd, "redirectTo"));
   const supabase = await createClient();
   const { data, error } = await supabase.from("rooms").delete().eq("id", roomId).select("id");
   if (error || !data?.length) return { error: t.errors.deleteRoom };
@@ -241,7 +247,7 @@ export async function createEvent(_: ActionState, fd: FormData): Promise<ActionS
     .insert({ ...parsed.data, description: parsed.data.description || null, room_id: roomId, created_by: me.id })
     .select("id")
     .single();
-  if (error) return { error: t.errors.createEvent };
+  if (error) return { error: isRateLimited(error) ? t.errors.rateLimited : t.errors.createEvent };
   revalidatePath(`/rooms/${roomId}`);
   redirect(`/rooms/${roomId}/events/${data.id}`);
 }
@@ -347,7 +353,7 @@ export async function adminDeleteUser(_: ActionState, fd: FormData): Promise<Act
   const { error } = await supabase.rpc("admin_delete_user", { uid: str(fd, "userId") });
   if (error) return { error: t.errors.deleteUser(error.message) };
   revalidatePath("/admin", "layout");
-  if (str(fd, "redirectTo")) redirect(str(fd, "redirectTo"));
+  if (str(fd, "redirectTo")) redirect(safeNextPath(str(fd, "redirectTo")));
 }
 
 export async function adminSetAdmin(_: ActionState, fd: FormData): Promise<ActionState> {

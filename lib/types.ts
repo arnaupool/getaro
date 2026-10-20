@@ -43,6 +43,8 @@ export type RoomEvent = {
 export type AvailabilityStatus = "yes" | "maybe";
 
 export type AvailabilityRow = {
+  /** Falta en las filas propias recién marcadas (optimistas) hasta la siguiente recarga */
+  id?: number;
   user_id: string;
   day: string;
   status: AvailabilityStatus;

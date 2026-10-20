@@ -1,13 +1,13 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import type { NextRequest } from "next/server";
 import { relativeRedirect } from "@/lib/redirect";
+import { safeNextPath } from "@/lib/safe-next";
 import { createClient } from "@/lib/supabase/server";
 
 // Vuelta de Google OAuth (?code=) o del magic link (?code= con PKCE, o ?token_hash=&type=)
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const next = searchParams.get("next") ?? "/";
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const safeNext = safeNextPath(searchParams.get("next"));
 
   const supabase = await createClient();
   const code = searchParams.get("code");

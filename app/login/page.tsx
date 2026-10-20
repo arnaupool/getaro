@@ -1,5 +1,6 @@
 import { supabaseConfig } from "@/lib/config";
 import { getI18n } from "@/lib/i18n/server";
+import { safeNextPath } from "@/lib/safe-next";
 import { LoginForm } from "./LoginForm";
 
 /** ¿Está Google activado en Supabase? (Authentication > Providers). Si no se puede saber, se oculta. */
@@ -25,7 +26,7 @@ export default async function LoginPage({
 }) {
   const { next, error } = await searchParams;
   const [{ t }, googleEnabled] = await Promise.all([getI18n(), isGoogleEnabled()]);
-  const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const safeNext = safeNextPath(next);
 
   return (
     <div className="mx-auto mt-6 max-w-sm sm:mt-10">

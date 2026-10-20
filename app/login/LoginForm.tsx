@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/components/I18nProvider";
+import { safeNextPath } from "@/lib/safe-next";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm({
@@ -68,7 +69,7 @@ export function LoginForm({
       setError(error.name === "AuthRetryableFetchError" ? t.errors.network : t.login.badCode);
       return;
     }
-    window.location.assign(next);
+    window.location.assign(safeNextPath(next));
   };
 
   if (status === "sent") {
@@ -193,7 +194,7 @@ function DevLogin({ next }: { next: string }) {
       setError(error.name === "AuthRetryableFetchError" ? t.errors.network : t.login.badCredentials);
       return;
     }
-    window.location.assign(next);
+    window.location.assign(safeNextPath(next));
   };
 
   return (
