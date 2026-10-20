@@ -1,4 +1,4 @@
-# Estado de getaro (13 oct 2026)
+# Estado de getaro (20 oct 2026)
 
 Resumen para retomar el trabajo. El producto está en [`docs/SPEC.md`](docs/SPEC.md); la base de datos, en
 [`docs/DATABASE.md`](docs/DATABASE.md).
@@ -6,9 +6,10 @@ Resumen para retomar el trabajo. El producto está en [`docs/SPEC.md`](docs/SPEC
 ## En producción
 
 - Imagen `ghcr.io/arnaupool/getaro:latest` en Unraid, publicada por GitHub Actions en cada push a `main`.
-- Supabase con las migraciones `0001` a `0009` aplicadas y probadas con cuentas no admin.
+- Supabase con las migraciones `0001` a `0011` aplicadas y probadas con cuentas no admin.
+- Revisión de seguridad completa el 20 oct 2026: ver `docs/SECURITY.md` (hallazgos, arreglos y pendientes).
 - Funcionalidad completa de la spec: salas con aprobación, quedadas con calendario y mejores fechas, chat con no
-  leídos, imagen de sala, idiomas, género, PWA y panel de admin.
+  leídos, encuestas por quedada, imagen de sala, idiomas, género, PWA y panel de admin.
 
 ## Pendiente
 

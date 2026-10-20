@@ -26,6 +26,7 @@ oscuro.
   más gente). Se actualiza en directo cuando otra persona marca.
 - **Millors dates.** La app calcula las rachas de días consecutivos en las que puede más gente y permite fijar una con
   un toque. Al fijarla se añade la hora y el lugar, y aparece en "Pròximes quedades" al entrar.
+- **Encuestas en cada quedada** ("On sopem?"), de una o varias respuestas, con los votos a la vista y en directo.
 - **Chat por sala** en tiempo real, con contador de mensajes sin leer y carga de mensajes antiguos.
 - **Panel de administración**: personas activas por día, cuentas, salas, historial de acciones delicadas y estado del
   sistema.
@@ -157,5 +158,6 @@ con un clic. Paso a paso, incluido el acceso desde fuera con Cloudflare Tunnel: 
 
 - [`docs/SPEC.md`](docs/SPEC.md): qué hace la app y por qué, decisiones y permisos.
 - [`docs/DATABASE.md`](docs/DATABASE.md): tablas, modelo de seguridad, migraciones y cómo probarlas.
+- [`docs/SECURITY.md`](docs/SECURITY.md): modelo de seguridad y revisión del 20 de octubre de 2026.
 - [`docs/ADMIN.md`](docs/ADMIN.md): diseño del panel de administración.
 - [`docs/DEPLOY.md`](docs/DEPLOY.md): instalación en Unraid.

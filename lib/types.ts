@@ -57,3 +57,17 @@ export type Message = {
   body: string;
   created_at: string;
 };
+
+export type PollOption = { id: string; label: string; position: number };
+export type PollVote = { id: number; option_id: string; user_id: string };
+
+export type Poll = {
+  id: string;
+  question: string;
+  multiple: boolean;
+  closed: boolean;
+  created_by: string | null;
+  created_at: string;
+  poll_options: PollOption[];
+  poll_votes: PollVote[];
+};

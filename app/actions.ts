@@ -325,6 +325,73 @@ export async function updateEventDetails(_: ActionState, fd: FormData): Promise<
   return { ok: t.common.saved };
 }
 
+// ─── Encuestas ──────────────────────────────────────────────
+// Crear, votar y añadir opciones pasan por funciones SQL que comprueban permisos (migración 0011).
+
+function pollPath(fd: FormData) {
+  return `/rooms/${str(fd, "roomId")}/events/${str(fd, "eventId")}`;
+}
+
+export async function createPoll(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const question = str(fd, "question").slice(0, 140);
+  const options = fd
+    .getAll("option")
+    .map((o) => (typeof o === "string" ? o.trim().slice(0, 80) : ""))
+    .filter(Boolean);
+  if (!question) return { error: t.errors.save };
+  if (options.length < 2) return { error: t.polls.minOptions };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("create_poll", {
+    eid: str(fd, "eventId"),
+    question,
+    multiple: fd.get("multiple") === "on",
+    options: options.slice(0, 10),
+  });
+  if (error) return { error: isRateLimited(error) ? t.errors.rateLimited : t.polls.error };
+  revalidatePath(pollPath(fd));
+  return { ok: t.common.saved };
+}
+
+export async function votePoll(path: string, pollId: string, optionIds: string[]): Promise<ActionState> {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("vote_poll", { pid: pollId, option_ids: optionIds });
+  if (error) return { error: t.polls.error };
+  revalidatePath(safeNextPath(path));
+}
+
+export async function addPollOption(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const label = str(fd, "label").slice(0, 80);
+  if (!label) return;
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("add_poll_option", { pid: str(fd, "pollId"), label });
+  if (error) return { error: t.polls.error };
+  revalidatePath(pollPath(fd));
+}
+
+export async function setPollClosed(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("polls")
+    .update({ closed: str(fd, "closed") === "true" })
+    .eq("id", str(fd, "pollId"))
+    .select("id");
+  if (error || !data?.length) return { error: t.polls.error };
+  revalidatePath(pollPath(fd));
+}
+
+export async function deletePoll(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("polls").delete().eq("id", str(fd, "pollId")).select("id");
+  if (error || !data?.length) return { error: t.polls.error };
+  revalidatePath(pollPath(fd));
+}
+
 // ─── Perfil ─────────────────────────────────────────────────
 
 export async function updateProfile(_: ActionState, fd: FormData): Promise<ActionState> {

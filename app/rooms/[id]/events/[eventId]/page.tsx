@@ -6,8 +6,9 @@ import { formatRange, todayISO } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
 import { getRoomContext } from "@/lib/room";
 import { createClient } from "@/lib/supabase/server";
-import type { AvailabilityRow, RoomEvent } from "@/lib/types";
+import type { AvailabilityRow, Poll, RoomEvent } from "@/lib/types";
 import { EventCalendar } from "./EventCalendar";
+import { EventPolls } from "./EventPolls";
 
 export default async function EventPage({ params }: { params: Promise<{ id: string; eventId: string }> }) {
   const { id, eventId } = await params;
@@ -15,13 +16,21 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const { t, locale } = await getI18n();
   const supabase = await createClient();
 
-  const [{ data: event }, { data: rows }] = await Promise.all([
+  const [{ data: event }, { data: rows }, { data: polls }] = await Promise.all([
     supabase.from("events").select("*").eq("id", eventId).eq("room_id", id).maybeSingle<RoomEvent>(),
     supabase
       .from("availability")
       .select("id, user_id, day, status")
       .eq("event_id", eventId)
       .returns<AvailabilityRow[]>(),
+    supabase
+      .from("polls")
+      .select(
+        "id, question, multiple, closed, created_by, created_at, poll_options(id, label, position), poll_votes(id, option_id, user_id)",
+      )
+      .eq("event_id", eventId)
+      .order("created_at")
+      .returns<Poll[]>(),
   ]);
   if (!event) notFound();
 
@@ -51,6 +60,16 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         canMark={ctx.isMember}
         canManage={canManage}
         today={todayISO()}
+      />
+
+      <EventPolls
+        roomId={id}
+        eventId={event.id}
+        polls={polls ?? []}
+        members={ctx.members}
+        meId={ctx.me.id}
+        canParticipate={ctx.isMember}
+        canModerate={ctx.canManageRoom}
       />
 
       {canManage && (

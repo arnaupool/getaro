@@ -14,6 +14,7 @@ sesión de la persona, y **la base de datos decide qué puede ver y hacer cada u
 | `events` | Quedadas: rango de fechas, fecha elegida, hora y lugar |
 | `availability` | Un día marcado por persona y quedada (`yes` o `maybe`); id propio para que Realtime no filtre quién desmarca |
 | `messages` | Mensajes del chat de cada sala |
+| `polls`, `poll_options`, `poll_votes` | Encuestas de cada quedada, sus opciones y los votos (con nombre) |
 | `activity_days` | Una fila por persona y día con actividad (para el panel de admin) |
 | `audit_log` | Historial de acciones delicadas, 90 días |
 
@@ -50,6 +51,7 @@ cambio es un archivo nuevo.
 | `0008_revoke_internal_functions.sql` | Quita el permiso de ejecución a funciones internas (arregla historial falsificable) |
 | `0009_rooms_owner_select.sql` | La titular ve su sala desde el primer momento (arregla crear sala sin ser admin) |
 | `0010_security_hardening.sql` | Revisión de seguridad: columnas escribibles, avatares solo de Google, foto en su carpeta, límites contra abuso, id propio en disponibilidad |
+| `0011_polls.sql` | Encuestas: tablas, permisos y funciones `create_poll`, `vote_poll`, `add_poll_option` |
 
 Para aplicarlas: SQL Editor de Supabase (pegar y ejecutar), o el conector de Supabase con `apply_migration`.
 
