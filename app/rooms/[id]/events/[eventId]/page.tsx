@@ -53,6 +53,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
       <EventCalendar
         roomId={id}
+        roomName={ctx.room.name}
         event={event}
         members={ctx.members}
         initialRows={rows ?? []}

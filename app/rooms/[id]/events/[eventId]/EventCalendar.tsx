@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { setFinalDate, updateEventDetails } from "@/app/actions";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Avatar } from "@/components/Avatar";
@@ -25,6 +25,7 @@ import {
   toUTC,
   weekdayMon0,
 } from "@/lib/dates";
+import { googleCalendarUrl } from "@/lib/google-calendar";
 import { createClient } from "@/lib/supabase/client";
 import type { AvailabilityRow, AvailabilityStatus, Member, RoomEvent } from "@/lib/types";
 
@@ -32,6 +33,7 @@ type Drag = { from: string; to: string; target: AvailabilityStatus | null };
 
 export function EventCalendar({
   roomId,
+  roomName,
   event,
   members,
   initialRows,
@@ -41,6 +43,7 @@ export function EventCalendar({
   today,
 }: {
   roomId: string;
+  roomName: string;
   event: RoomEvent;
   members: Member[];
   initialRows: AvailabilityRow[];
@@ -230,7 +233,9 @@ export function EventCalendar({
           time={event.final_time}
           location={event.location}
           roomId={roomId}
+          roomName={roomName}
           eventId={event.id}
+          eventTitle={event.title}
           members={members}
           summaries={summaries}
           canManage={canManage}
@@ -571,7 +576,9 @@ function FinalBanner({
   time,
   location,
   roomId,
+  roomName,
   eventId,
+  eventTitle,
   members,
   summaries,
   canManage,
@@ -583,7 +590,9 @@ function FinalBanner({
   time: string | null;
   location: string | null;
   roomId: string;
+  roomName: string;
   eventId: string;
+  eventTitle: string;
   members: Member[];
   summaries: Map<string, DaySummary>;
   canManage: boolean;
@@ -598,6 +607,21 @@ function FinalBanner({
       return !!s && (s.yes.includes(m.id) || s.maybe.includes(m.id));
     }),
   );
+  // Dirección pública en la que se está (getaro.apool.dev, la IP...); en el servidor no se conoce
+  const origin = useSyncExternalStore(
+    () => () => {},
+    () => window.location.origin,
+    () => "",
+  );
+  const calendarHref = googleCalendarUrl({
+    title: eventTitle,
+    start,
+    end,
+    time,
+    location,
+    details: t.calendar.gcalDetails(roomName, origin ? `${origin}/rooms/${roomId}/events/${eventId}` : ""),
+  });
+
   return (
     <div className="card border-amber-300 bg-amber-50 dark:border-amber-700/60 dark:bg-amber-950/30">
       <div className="flex flex-wrap items-center gap-3">
@@ -615,6 +639,18 @@ function FinalBanner({
           {coming.length > 0 && (
             <p className="muted text-xs">{t.calendar.hadMarked(coming.map((m) => m.display_name).join(", "))}</p>
           )}
+          <a
+            href={calendarHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary mt-3 w-full sm:w-auto"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
+            </svg>
+            {t.calendar.addToGoogle}
+          </a>
         </div>
         {canManage && (
           <button className="btn-ghost text-xs" disabled={busy} onClick={onClear}>
