@@ -17,6 +17,7 @@ sesión de la persona, y **la base de datos decide qué puede ver y hacer cada u
 | `polls`, `poll_options`, `poll_votes` | Encuestas de cada quedada, sus opciones y los votos (con nombre) |
 | `activity_days` | Una fila por persona y día con actividad (para el panel de admin) |
 | `audit_log` | Historial de acciones delicadas, 90 días |
+| `app_settings` | Una sola fila con los ajustes que edita el admin: la dirección pública de la app |
 
 Las fotos de sala están en Supabase Storage, en el bucket público `room-images`, con la ruta `<id_sala>/<archivo>`.
 
@@ -52,6 +53,7 @@ cambio es un archivo nuevo.
 | `0009_rooms_owner_select.sql` | La titular ve su sala desde el primer momento (arregla crear sala sin ser admin) |
 | `0010_security_hardening.sql` | Revisión de seguridad: columnas escribibles, avatares solo de Google, foto en su carpeta, límites contra abuso, id propio en disponibilidad |
 | `0011_polls.sql` | Encuestas: tablas, permisos y funciones `create_poll`, `vote_poll`, `add_poll_option` |
+| `0012_app_settings.sql` | Ajustes de la app (dirección pública) y `admin_set_public_url` |
 
 Para aplicarlas: SQL Editor de Supabase (pegar y ejecutar), o el conector de Supabase con `apply_migration`.
 

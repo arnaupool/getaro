@@ -31,9 +31,10 @@ Vocabulario:
 | Mejores fechas | Rachas de días consecutivos con el máximo de gente disponible, ordenadas por duración |
 | Fijar fecha | Quien creó la quedada o la titular. Día o rango, con hora y lugar opcionales |
 | Calendario personal | Botón "Afegir a Google Calendar" en la fecha elegida: abre Google Calendar con título, día, hora (2 h por defecto), lugar y enlace a la quedada ya rellenados; solo hay que pulsar Guardar. Sin hora, evento de día completo |
+| Dirección pública | La escribe el admin en Admin → Sistema; se usa en los enlaces de invitación y en el de Google Calendar. Si está vacía, se usa la del navegador |
 | Entrar en una sala | Enlace `/join/<código>` (8 caracteres sin ambiguos). Con aprobación activada (por defecto) se crea una solicitud; la titular acepta o rechaza |
 | Chat | Uno por sala, en tiempo real, con contador de no leídos guardado en la base de datos |
-| Encuestas | En cada quedada. Las crea cualquier miembro, que elige si se puede votar una o varias opciones (de 2 a 10). Los votos se ven con nombre y se pueden cambiar hasta que se cierra. Solo quien la crea añade opciones; la cierra o borra quien la creó o la titular |
+| Encuestas | En cada quedada, en su propia pestaña con el número de encuestas abiertas sin votar. Las crea cualquier miembro, que elige si se puede votar una o varias opciones (de 2 a 10; antes de publicar se pueden quitar). Los votos se ven con nombre y se pueden cambiar hasta que se cierra. Solo quien la crea añade opciones; la cierra o borra quien la creó o la titular |
 | Imagen de sala | Foto (reducida a 256 px en el navegador, en Supabase Storage) o emoji |
 | Idioma | Valencià por defecto y castellano. Se elige en la cabecera y se guarda en una cookie |
 | Género | Cada persona elige cómo la trata la app (femenino, masculino o neutro). Los textos sobre el grupo son neutros |
@@ -67,7 +68,7 @@ Vocabulario:
 | `/` | Mis salas (con no leídos y solicitudes), próximas quedadas, salas en espera, crear sala, unirse con código |
 | `/join/[code]` | Vista previa de la sala: entrar, pedir entrar o "esperando aprobación" |
 | `/rooms/[id]` | Pestañas Quedades, Xat y Gent (miembros, solicitudes, invitación y ajustes de la sala) |
-| `/rooms/[id]/events/[eventId]` | Calendario, mejores fechas, quién ha marcado, fecha elegida con hora y lugar, encuestas |
+| `/rooms/[id]/events/[eventId]` | Pestañas Calendari (calendario, mejores fechas, quién ha marcado, fecha elegida con hora y lugar) y Enquestes |
 | `/settings` | Nombre, cómo te trata la app, color y tema |
 | `/admin` | Resum, Comptes, Sales, Historial y Sistema (ver [`ADMIN.md`](ADMIN.md)) |
 | `/unavailable` | Aviso si Supabase no responde |

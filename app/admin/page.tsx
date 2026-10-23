@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { adminSetPublicUrl } from "@/app/actions";
+import { ActionForm, SubmitButton } from "@/components/forms";
 import {
   AUDIT_CATEGORIES,
   checkSupabaseHealth,
@@ -13,6 +15,7 @@ import type { Dict, Locale } from "@/lib/i18n/dictionaries";
 import { RoomAvatar } from "@/components/RoomAvatar";
 import { getI18n } from "@/lib/i18n/server";
 import { roomImageUrl } from "@/lib/room-image";
+import { getPublicUrl } from "@/lib/settings";
 import { getVersion } from "@/lib/version";
 import { createClient } from "@/lib/supabase/server";
 import { ActivityChart, type ActivityPoint } from "./ActivityChart";
@@ -216,7 +219,11 @@ async function HistoryTab({ t, locale, type }: { t: Dict; locale: Locale; type?:
 async function SystemTab({ t, locale }: { t: Dict; locale: Locale }) {
   const supabase = await createClient();
 
-  const [health, { data: dbBytes }] = await Promise.all([checkSupabaseHealth(), supabase.rpc("admin_db_size")]);
+  const [health, { data: dbBytes }, publicUrl] = await Promise.all([
+    checkSupabaseHealth(),
+    supabase.rpc("admin_db_size"),
+    getPublicUrl(),
+  ]);
 
   const usedMb = typeof dbBytes === "number" ? dbBytes / 1024 / 1024 : null;
   const usedPct = usedMb === null ? 0 : Math.min(100, (usedMb / 500) * 100);
@@ -259,6 +266,26 @@ async function SystemTab({ t, locale }: { t: Dict; locale: Locale }) {
           <p className="muted text-sm">{t.admin.devVersion}</p>
         )}
       </div>
+
+      <ActionForm action={adminSetPublicUrl} className="card space-y-2 sm:col-span-3">
+        <label className="label" htmlFor="publicUrl">
+          {t.admin.publicUrl}
+        </label>
+        <p className="muted text-xs">{t.admin.publicUrlHint}</p>
+        <div className="flex flex-wrap gap-2">
+          <input
+            id="publicUrl"
+            name="publicUrl"
+            inputMode="url"
+            autoComplete="off"
+            maxLength={200}
+            defaultValue={publicUrl ?? ""}
+            placeholder="https://getaro.example.com"
+            className="input min-w-0 flex-1"
+          />
+          <SubmitButton className="btn-secondary">{t.common.save}</SubmitButton>
+        </div>
+      </ActionForm>
     </section>
   );
 }

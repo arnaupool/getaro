@@ -11,6 +11,7 @@ import {
 import { Avatar } from "@/components/Avatar";
 import { ActionForm, CopyButton, SubmitButton } from "@/components/forms";
 import { getI18n } from "@/lib/i18n/server";
+import { shareLink } from "@/lib/public-url";
 import type { getRoomContext } from "@/lib/room";
 import { roomImageUrl } from "@/lib/room-image";
 import { ApprovalToggle } from "./ApprovalToggle";
@@ -18,9 +19,10 @@ import { RoomImageEditor } from "./RoomImageEditor";
 
 type Ctx = Awaited<ReturnType<typeof getRoomContext>>;
 
-export async function PeopleTab({ ctx }: { ctx: Ctx }) {
+export async function PeopleTab({ ctx, publicUrl }: { ctx: Ctx; publicUrl: string | null }) {
   const { room, members, requests, me, canManageRoom, isOwner, isMember } = ctx;
   const { t } = await getI18n();
+  const inviteLink = shareLink(publicUrl, `/join/${room.invite_code}`);
 
   return (
     <div className="space-y-6">
@@ -102,9 +104,9 @@ export async function PeopleTab({ ctx }: { ctx: Ctx }) {
           <p className="muted text-sm">{t.people.inviteHint}</p>
           <div className="flex flex-wrap items-center gap-2">
             <code className="rounded-lg bg-zinc-100 px-3 py-2 font-mono text-sm break-all dark:bg-zinc-800">
-              /join/{room.invite_code}
+              {inviteLink}
             </code>
-            <CopyButton text={`/join/${room.invite_code}`} />
+            <CopyButton text={inviteLink} />
             {canManageRoom && (
               <ActionForm action={regenerateInvite}>
                 <input type="hidden" name="roomId" value={room.id} />

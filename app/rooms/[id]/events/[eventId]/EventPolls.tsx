@@ -9,6 +9,7 @@ import { useI18n } from "@/components/I18nProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { Member, Poll } from "@/lib/types";
 
+const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 10;
 
 type Props = {
@@ -23,7 +24,6 @@ type Props = {
 
 export function EventPolls({ roomId, eventId, polls, members, meId, canParticipate, canModerate }: Props) {
   const { t } = useI18n();
-  const router = useRouter();
   const path = `/rooms/${roomId}/events/${eventId}`;
   const [error, setError] = useState("");
   const [, startTransition] = useTransition();
@@ -61,7 +61,37 @@ export function EventPolls({ roomId, eventId, polls, members, meId, canParticipa
     });
   };
 
-  // ── En directo: si otra persona vota, crea o cierra una encuesta, recargamos
+  return (
+    <section className="space-y-3">
+      {shown.length === 0 && <p className="muted text-sm">{t.polls.empty}</p>}
+
+      {shown.map((poll) => (
+        <PollCard
+          key={poll.id}
+          poll={poll}
+          members={members}
+          meId={meId}
+          roomId={roomId}
+          eventId={eventId}
+          canVote={canParticipate && !poll.closed}
+          canManage={canModerate || (canParticipate && poll.created_by === meId)}
+          onVote={(optionId) => vote(poll, optionId)}
+        />
+      ))}
+
+      {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+
+      {canParticipate && <NewPollForm roomId={roomId} eventId={eventId} />}
+    </section>
+  );
+}
+
+/**
+ * En directo: si otra persona vota, crea o cierra una encuesta, recarga la página. Va aparte de la lista
+ * para que el número de la pestaña Enquestes se actualice también desde el calendario.
+ */
+export function PollsLive({ eventId, meId, polls }: { eventId: string; meId: string; polls: Poll[] }) {
+  const router = useRouter();
   const known = useRef({ polls: new Set<string>(), votes: new Set<number>() });
   useEffect(() => {
     known.current = {
@@ -106,31 +136,7 @@ export function EventPolls({ roomId, eventId, polls, members, meId, canParticipa
     };
   }, [eventId, meId, router]);
 
-  return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">{t.polls.title}</h2>
-
-      {shown.length === 0 && <p className="muted text-sm">{t.polls.empty}</p>}
-
-      {shown.map((poll) => (
-        <PollCard
-          key={poll.id}
-          poll={poll}
-          members={members}
-          meId={meId}
-          roomId={roomId}
-          eventId={eventId}
-          canVote={canParticipate && !poll.closed}
-          canManage={canModerate || (canParticipate && poll.created_by === meId)}
-          onVote={(optionId) => vote(poll, optionId)}
-        />
-      ))}
-
-      {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
-
-      {canParticipate && <NewPollForm roomId={roomId} eventId={eventId} />}
-    </section>
-  );
+  return null;
 }
 
 function PollCard({
@@ -259,7 +265,13 @@ function PollCard({
 
 function NewPollForm({ roomId, eventId }: { roomId: string; eventId: string }) {
   const { t } = useI18n();
-  const [count, setCount] = useState(2);
+  // Ids estables: al quitar una opción, el resto conserva lo que ya se había escrito
+  const [fields, setFields] = useState([0, 1]);
+  const nextId = useRef(2);
+  const addField = () => {
+    const id = nextId.current++;
+    setFields((f) => [...f, id]);
+  };
 
   return (
     <details className="card">
@@ -283,22 +295,37 @@ function NewPollForm({ roomId, eventId }: { roomId: string; eventId: string }) {
           />
         </div>
         <div className="space-y-2">
-          {Array.from({ length: count }, (_, i) => (
-            <input
-              key={i}
-              name="option"
-              required={i < 2}
-              maxLength={80}
-              placeholder={t.polls.option(i + 1)}
-              aria-label={t.polls.option(i + 1)}
-              className="input"
-            />
+          {fields.map((id, i) => (
+            <div key={id} className="flex items-center gap-2">
+              <input
+                name="option"
+                required
+                maxLength={80}
+                placeholder={t.polls.option(i + 1)}
+                aria-label={t.polls.option(i + 1)}
+                className="input min-w-0 flex-1"
+              />
+              {fields.length > MIN_OPTIONS && (
+                <button
+                  type="button"
+                  className="btn-ghost shrink-0 px-2.5"
+                  title={t.polls.removeOption(i + 1)}
+                  aria-label={t.polls.removeOption(i + 1)}
+                  onClick={() => setFields((f) => f.filter((x) => x !== id))}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           ))}
-          {count < MAX_OPTIONS && (
-            <button type="button" className="btn-ghost text-sm" onClick={() => setCount((c) => c + 1)}>
-              ＋ {t.polls.addOptionField}
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {fields.length < MAX_OPTIONS && (
+              <button type="button" className="btn-ghost text-sm" onClick={addField}>
+                ＋ {t.polls.addOptionField}
+              </button>
+            )}
+            <span className="muted text-xs">{t.polls.optionsHint}</span>
+          </div>
         </div>
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input type="checkbox" name="multiple" className="h-4 w-4 accent-violet-600" />

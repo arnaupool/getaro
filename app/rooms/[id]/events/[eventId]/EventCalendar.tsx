@@ -34,6 +34,7 @@ type Drag = { from: string; to: string; target: AvailabilityStatus | null };
 export function EventCalendar({
   roomId,
   roomName,
+  publicUrl,
   event,
   members,
   initialRows,
@@ -44,6 +45,7 @@ export function EventCalendar({
 }: {
   roomId: string;
   roomName: string;
+  publicUrl: string | null;
   event: RoomEvent;
   members: Member[];
   initialRows: AvailabilityRow[];
@@ -234,6 +236,7 @@ export function EventCalendar({
           location={event.location}
           roomId={roomId}
           roomName={roomName}
+          publicUrl={publicUrl}
           eventId={event.id}
           eventTitle={event.title}
           members={members}
@@ -577,6 +580,7 @@ function FinalBanner({
   location,
   roomId,
   roomName,
+  publicUrl,
   eventId,
   eventTitle,
   members,
@@ -591,6 +595,7 @@ function FinalBanner({
   location: string | null;
   roomId: string;
   roomName: string;
+  publicUrl: string | null;
   eventId: string;
   eventTitle: string;
   members: Member[];
@@ -607,12 +612,13 @@ function FinalBanner({
       return !!s && (s.yes.includes(m.id) || s.maybe.includes(m.id));
     }),
   );
-  // Dirección pública en la que se está (getaro.apool.dev, la IP...); en el servidor no se conoce
-  const origin = useSyncExternalStore(
+  // La dirección de Admin → Sistema; sin ella, la del navegador (que en el servidor no se conoce)
+  const browserOrigin = useSyncExternalStore(
     () => () => {},
     () => window.location.origin,
     () => "",
   );
+  const origin = publicUrl ?? browserOrigin;
   const calendarHref = googleCalendarUrl({
     title: eventTitle,
     start,

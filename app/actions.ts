@@ -9,6 +9,7 @@ import { requireAdmin, requireProfile } from "@/lib/auth";
 import { diffDays, todayISO } from "@/lib/dates";
 import { isLocale, LOCALE_COOKIE, type Dict, type Locale } from "@/lib/i18n/dictionaries";
 import { getI18n } from "@/lib/i18n/server";
+import { normalizePublicUrl } from "@/lib/public-url";
 import { safeNextPath } from "@/lib/safe-next";
 import { ROOM_IMAGES_BUCKET } from "@/lib/room-image";
 import { createClient } from "@/lib/supabase/server";
@@ -452,6 +453,18 @@ export async function adminSignOutUser(_: ActionState, fd: FormData): Promise<Ac
   if (error) return { error: t.errors.save };
   revalidatePath("/admin", "layout");
   return { ok: t.admin.signedOut(Number(data ?? 0)) };
+}
+
+export async function adminSetPublicUrl(_: ActionState, fd: FormData): Promise<ActionState> {
+  const { t } = await getI18n();
+  await requireAdmin();
+  const url = normalizePublicUrl(str(fd, "publicUrl"));
+  if (url === null) return { error: t.admin.publicUrlInvalid };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("admin_set_public_url", { url });
+  if (error) return { error: t.errors.save };
+  revalidatePath("/", "layout");
+  return { ok: t.common.saved };
 }
 
 export async function adminTransferRoom(_: ActionState, fd: FormData): Promise<ActionState> {

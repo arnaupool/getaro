@@ -3,8 +3,10 @@ import { AvatarStack } from "@/components/Avatar";
 import { CopyButton } from "@/components/forms";
 import { RoomAvatar } from "@/components/RoomAvatar";
 import { getI18n } from "@/lib/i18n/server";
+import { shareLink } from "@/lib/public-url";
 import { roomImageUrl } from "@/lib/room-image";
 import { getRoomContext } from "@/lib/room";
+import { getPublicUrl } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 import type { Message } from "@/lib/types";
 import { Chat } from "./Chat";
@@ -29,8 +31,7 @@ export default async function RoomPage({
   const { id } = await params;
   const { tab: rawTab } = await searchParams;
   const tab: Tab = TABS.some((x) => x.key === rawTab) ? (rawTab as Tab) : "eventos";
-  const ctx = await getRoomContext(id);
-  const { t } = await getI18n();
+  const [ctx, { t }, publicUrl] = await Promise.all([getRoomContext(id), getI18n(), getPublicUrl()]);
   const { room, members, me } = ctx;
   const supabase = await createClient();
   const { data: unreadRows } = await supabase.rpc("unread_counts");
@@ -48,7 +49,7 @@ export default async function RoomPage({
           <h1 className="text-2xl font-bold break-words">{room.name}</h1>
         </div>
         <AvatarStack members={members} />
-        {ctx.isMember && <CopyButton text={`/join/${room.invite_code}`} label={t.room.invite} />}
+        {ctx.isMember && <CopyButton text={shareLink(publicUrl, `/join/${room.invite_code}`)} label={t.room.invite} />}
       </div>
 
       <nav className="flex gap-1 rounded-2xl bg-zinc-200/60 p-1 dark:bg-zinc-800/60">
@@ -80,7 +81,7 @@ export default async function RoomPage({
       {tab === "chat" && (
         <ChatTab roomId={id} members={members} meId={me.id} canModerate={ctx.canManageRoom} canWrite={ctx.isMember} />
       )}
-      {tab === "gente" && <PeopleTab ctx={ctx} />}
+      {tab === "gente" && <PeopleTab ctx={ctx} publicUrl={publicUrl} />}
     </div>
   );
 }

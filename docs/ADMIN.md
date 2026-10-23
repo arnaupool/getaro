@@ -12,7 +12,7 @@ Estado: implementado (13 oct 2026), pendiente de ejecutar `supabase/migrations/0
 | 4 | Acciones sobre salas | Además de borrar: ver ficha (miembros, quedadas, solicitudes, actividad) y cambiar titular. |
 | 5 | Registro | Abierto. La protección es la aprobación de cada sala; las cuentas desconocidas se borran desde Admin. |
 | 6 | Historial | Acciones delicadas de todo el mundo, visibles en Admin, se guardan 90 días. |
-| 7 | Salud del sistema | Estado de Supabase (responde y latencia), espacio usado de 500 MB, versión desplegada (commit y fecha). |
+| 7 | Salud del sistema | Estado de Supabase (responde y latencia), espacio usado de 500 MB, versión desplegada (commit y fecha). Dirección pública de la app (enlaces de invitación y Google Calendar). |
 
 ## Estructura
 
@@ -25,7 +25,8 @@ Cinco pestañas en `/admin`:
 3. **Sales**: lista en tarjetas (nombre, titular, personas, quedadas, actividad). Ficha: miembros, quedadas,
    solicitudes pendientes, mensajes de los últimos 30 días; acciones: cambiar titular, abrir la sala, borrar.
 4. **Historial**: últimas acciones delicadas, filtrables por tipo, con quién, qué, dónde y cuándo.
-5. **Sistema**: estado de Supabase con latencia, MB usados sobre 500, commit y fecha de la imagen.
+5. **Sistema**: estado de Supabase con latencia, MB usados sobre 500, commit y fecha de la imagen, y la dirección
+   pública.
 
 ## Datos necesarios (migración 0006)
 
