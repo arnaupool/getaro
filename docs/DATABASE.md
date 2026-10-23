@@ -54,6 +54,7 @@ cambio es un archivo nuevo.
 | `0010_security_hardening.sql` | Revisión de seguridad: columnas escribibles, avatares solo de Google, foto en su carpeta, límites contra abuso, id propio en disponibilidad |
 | `0011_polls.sql` | Encuestas: tablas, permisos y funciones `create_poll`, `vote_poll`, `add_poll_option` |
 | `0012_app_settings.sql` | Ajustes de la app (dirección pública) y `admin_set_public_url` |
+| `0013_public_url_where.sql` | `admin_set_public_url` con `where` (arregla "UPDATE requires a WHERE clause") |
 
 Para aplicarlas: SQL Editor de Supabase (pegar y ejecutar), o el conector de Supabase con `apply_migration`.
 
@@ -64,6 +65,9 @@ Para aplicarlas: SQL Editor de Supabase (pegar y ejecutar), o el conector de Sup
 - **Un `insert ... returning` exige cumplir la política `select` en ese momento.** Los triggers `after` llegan tarde
   (lección de la 0009).
 - **Probar con cuentas que no sean admin.** El admin salta muchas políticas y esconde errores.
+- **Todo `update` y `delete` lleva `where`, también dentro de funciones.** En las peticiones de la API Supabase activa
+  `pg_safeupdate`, que los rechaza; las pruebas con `execute_sql` no pasan por la API y no lo detectan (lección de la
+  0013). En una tabla de una sola fila, `where id`.
 
 ## Cómo probar una migración sin dejar rastro
 

@@ -12,6 +12,8 @@ cualquier cambio de base de datos, [`docs/DATABASE.md`](docs/DATABASE.md).
   que lo deshace todo, usando cuentas **no admin**.
 - Nunca `grant execute on all functions`: conceder `execute` función a función (ver 0008).
 - Un `insert` con `returning` exige cumplir la política `select` en ese momento (ver 0009).
+- Todo `update` y `delete` lleva `where`, también en funciones: la API de Supabase usa `pg_safeupdate` y las pruebas
+  con `execute_sql` no lo detectan (ver 0013).
 - Fechas de día siempre como texto `YYYY-MM-DD` con los ayudantes de `lib/dates.ts`.
 - Textos de la interfaz siempre en `lib/i18n/dictionaries.ts`, en valencià y castellano.
 - Las server actions devuelven `{ error }` en lugar de lanzar: en producción Next.js oculta los mensajes lanzados.
