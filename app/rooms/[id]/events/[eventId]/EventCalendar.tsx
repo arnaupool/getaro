@@ -26,6 +26,7 @@ import {
   weekdayMon0,
 } from "@/lib/dates";
 import { googleCalendarUrl } from "@/lib/google-calendar";
+import { googleMapsUrl } from "@/lib/maps";
 import { createClient } from "@/lib/supabase/client";
 import type { AvailabilityRow, AvailabilityStatus, Member, RoomEvent } from "@/lib/types";
 
@@ -645,18 +646,38 @@ function FinalBanner({
           {coming.length > 0 && (
             <p className="muted text-xs">{t.calendar.hadMarked(coming.map((m) => m.display_name).join(", "))}</p>
           )}
-          <a
-            href={calendarHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-secondary mt-3 w-full sm:w-auto"
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
-            </svg>
-            {t.calendar.addToGoogle}
-          </a>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <a href={calendarHref} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
+              </svg>
+              {t.calendar.addToGoogle}
+            </a>
+            {location && (
+              <a href={googleMapsUrl(location)} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden
+                >
+                  <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
+                  <circle cx="12" cy="9.5" r="2.5" />
+                </svg>
+                {t.calendar.openInMaps}
+              </a>
+            )}
+          </div>
         </div>
         {canManage && (
           <button className="btn-ghost text-xs" disabled={busy} onClick={onClear}>

@@ -30,7 +30,7 @@ Vocabulario:
 | Coincidencias | Verde intenso si puede todo el grupo; verde claro si todo el grupo pero con algún `maybe`; violeta proporcional al resto |
 | Mejores fechas | Rachas de días consecutivos con el máximo de gente disponible, ordenadas por duración |
 | Fijar fecha | Quien creó la quedada o la titular. Día o rango, con hora y lugar opcionales |
-| Calendario personal | Botón "Afegir a Google Calendar" en la fecha elegida: abre Google Calendar con título, día, hora (2 h por defecto), lugar y enlace a la quedada ya rellenados; solo hay que pulsar Guardar. Sin hora, evento de día completo |
+| Calendario personal | Botón "Afegir a Google Calendar" en la fecha elegida: abre Google Calendar con título, día, hora (2 h por defecto), lugar y enlace a la quedada ya rellenados; solo hay que pulsar Guardar. Sin hora, evento de día completo. Con lugar, botón "Obrir a Google Maps" (abre la app si está instalada) |
 | Dirección pública | La escribe el admin en Admin → Sistema; se usa en los enlaces de invitación y en el de Google Calendar. Si está vacía, se usa la del navegador |
 | Entrar en una sala | Enlace `/join/<código>` (8 caracteres sin ambiguos). Con aprobación activada (por defecto) se crea una solicitud; la titular acepta o rechaza |
 | Chat | Uno por sala, en tiempo real, con contador de no leídos guardado en la base de datos |
